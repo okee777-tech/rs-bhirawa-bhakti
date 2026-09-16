@@ -1,26 +1,41 @@
 /**
- * RS Bhirawa Bhakti — pemicu otomatis deploy.
- * Edit Google Sheet -> dalam <=5 menit Netlify build -> website update sendiri.
+ * RS Bhirawa Bhakti — pemicu otomatis deploy (event-driven).
+ * Edit Google Sheet -> dalam <=5 menit GitHub Actions jalan -> website update sendiri.
  *
- * CARA PASANG (sekali saja):
- *   1) Buka Google Sheet "JADWAL DOKTER (Website)".
- *   2) Menu: Ekstensi -> Apps Script.
+ * ===== CARA PASANG (sekali saja) =====
+ *   1) Buat GitHub PAT (token):
+ *      - Buka https://github.com/settings/tokens?type=beta  (Fine-grained token)
+ *      - Klik "Generate new token"
+ *      - Token name: bebas (mis. "rsbb-trigger")
+ *      - Expiration: mis. 90 hari
+ *      - Repository access: "Only select repositories" -> pilih  okee777-tech/rs-bhirawa-bhakti
+ *      - Permissions -> "Workflows": pilih "Read and write"
+ *      - Klik "Generate token", lalu SALIN tokennya (diawali github_pat_...)
+ *
+ *   2) Buka Google Sheet "JADWAL DOKTER (Website)".
+ *      Menu: Ekstensi -> Apps Script.
+ *
  *   3) Hapus isi editor, tempel SELURUH isi file ini, lalu simpan
  *      (beri nama mis. "Trigger Deploy Jadwal").
- *   4) Jalankan fungsi setHook dengan URL build hook Netlify:
- *         setHook('https://api.netlify.com/build_hooks/XXXXXXXX')
+ *
+ *   4) Di editor, jalankan fungsi setToken dengan token tadi:
+ *         setToken('github_pat_xxxxxxxx')
  *      lalu klik "Review permissions" / izinkan akses.
+ *
  *   5) Jalankan fungsi setup() untuk memasang trigger.
+ *
  *   6) Tes: edit satu sel di sheet, tunggu <=5 menit, cek situs.
  */
 
-const PROP_HOOK = 'NETLIFY_BUILD_HOOK';
+const PROP_TOKEN = 'GITHUB_PAT';
 const PROP_PENDING = 'PENDING_EDIT';
+const REPO = 'okee777-tech/rs-bhirawa-bhakti';
+const WORKFLOW = 'deploy-jadwal.yml';
 
-/** Simpan URL build hook Netlify (jalankan sekali). */
-function setHook(url) {
-  PropertiesService.getScriptProperties().setProperty(PROP_HOOK, url);
-  Logger.log('Hook tersimpan: ' + url);
+/** Simpan token GitHub (jalankan sekali). */
+function setToken(token) {
+  PropertiesService.getScriptProperties().setProperty(PROP_TOKEN, token);
+  Logger.log('Token tersimpan (panjang ' + token.length + ').');
 }
 
 /** Pasang trigger onEdit + penjadwal 5 menit (jalankan sekali). */
@@ -43,16 +58,29 @@ function onSheetEdit(e) {
   PropertiesService.getScriptProperties().setProperty(PROP_PENDING, '1');
 }
 
-/** Dicek tiap 5 menit -> kalau ada perubahan, panggil Netlify build hook. */
+/** Dicek tiap 5 menit -> kalau ada perubahan, picu GitHub Actions. */
 function checkAndDeploy() {
   const p = PropertiesService.getScriptProperties();
   if (p.getProperty(PROP_PENDING) !== '1') return;
   p.setProperty(PROP_PENDING, '0');
-  const hook = p.getProperty(PROP_HOOK);
-  if (!hook) {
-    Logger.log('Hook belum di-set. Jalankan setHook(...) dulu.');
+
+  const token = p.getProperty(PROP_TOKEN);
+  if (!token) {
+    Logger.log('Token belum di-set. Jalankan setToken(...) dulu.');
     return;
   }
-  UrlFetchApp.fetch(hook, { method: 'post' });
-  Logger.log('Trigger deploy terkirim ke Netlify.');
+
+  const url = 'https://api.github.com/repos/' + REPO +
+      '/actions/workflows/' + WORKFLOW + '/dispatches';
+  const resp = UrlFetchApp.fetch(url, {
+    method: 'post',
+    headers: {
+      'Authorization': 'Bearer ' + token,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    },
+    payload: JSON.stringify({ ref: 'main' }),
+    muteHttpExceptions: true
+  });
+  Logger.log('GitHub API: ' + resp.getResponseCode() + ' ' + resp.getContentText());
 }
