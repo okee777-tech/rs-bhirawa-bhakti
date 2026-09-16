@@ -1,0 +1,11 @@
+# Konfigurasi build Netlify (dibaca saat situs tersambung ke GitHub).
+# Untuk deploy manual lokal (netlify deploy --dir dist) berkas ini TIDAK dipakai.
+[build]
+  command = "bash tools/netlify-build.sh"
+  publish = "dist"
+
+[build.environment]
+  # URL CSV Google Sheet hasil "Publish to web". Lebih baik diisi lewat dashboard
+  # Netlify (Build & deploy → Environment → Environment variables → SHEET_CSV_URL),
+  # supaya bisa diganti tanpa edit repo. Kalau ingin hardcode, hapus "#" di bawah:
+  # SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/..../pub?output=csv"

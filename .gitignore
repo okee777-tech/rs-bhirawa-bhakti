@@ -1,0 +1,8 @@
+# Local Netlify folder
+.netlify
+
+# Hasil generate / spesifik komputer (jangan masuk repo)
+dist/
+data/
+__pycache__/
+*.pyc
