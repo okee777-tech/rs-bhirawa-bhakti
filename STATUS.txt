@@ -1,2 +1,13 @@
-waktu_utc: 2026-09-16T15:10:00Z
-status: OK — pipeline berhasil (run #9 sukses, deploy "Auto (GitHub Actions): jadwal dokter").
+waktu_utc: 2026-09-16T17:56:07Z
+alasan_awal: tidak-kosong
+panjang_url: 135
+pola_url: google
+berkolom_poli: ya
+jumlah_coba: 1
+awal_unduhan: Poli,Dokter,Spesialisasi,Hari,Jam Mulai,Jam Selesai,Foto
+kode_http: 200
+content_type: text/csv; charset=utf-8
+ukuran_isi: 8117 byte
+awal_isi: Poli,Dokter,Spesialisasi,Hari,Jam Mulai,
+ada_d_e: ya
+akhiran_url: G7B/pub?output=csv
