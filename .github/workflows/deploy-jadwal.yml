@@ -1,0 +1,103 @@
+name: Auto-update jadwal dokter
+
+# Cek tiap 10 menit: kalau jadwal di Google Sheet berubah, situs dibangun ulang
+# dan di-deploy ke Netlify — semuanya di server GitHub, tanpa komputer lokal.
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # UTC; GitHub memakai UTC, jadi tiap 10 menit
+  workflow_dispatch:          # bisa dijalankan manual dari tab Actions
+
+permissions:
+  contents: write             # untuk menyimpan sidik jari + dokter.html
+
+concurrency:
+  group: deploy-jadwal
+  cancel-in-progress: false
+
+jobs:
+  jadwal:
+    runs-on: ubuntu-latest
+    env:
+      # URL CSV publik hasil "Publish to web" dari Google Sheet.
+      # Boleh diisi sebagai Repository variable (Settings -> Secrets and variables -> Actions
+      # -> Variables) ATAU sebagai secret. Keduanya didukung.
+      SHEET_CSV_URL: ${{ vars.SHEET_CSV_URL != '' && vars.SHEET_CSV_URL || secrets.SHEET_CSV_URL }}
+      NETLIFY_SITE_ID: b80d5197-39b0-4721-9ac1-39f7afdf7d26
+
+    steps:
+      - name: Ambil repo
+        uses: actions/checkout@v4
+
+      - name: Ambil jadwal dari Google Sheet & bandingkan sidik jari
+        id: cek
+        run: |
+          set -euo pipefail
+          if [ -z "${SHEET_CSV_URL:-}" ]; then
+            echo "::error::SHEET_CSV_URL belum diisi (Settings -> Secrets and variables -> Actions)."
+            exit 1
+          fi
+          curl -sSL --fail --max-time 60 "$SHEET_CSV_URL" -o /tmp/jadwal.csv
+          if ! head -1 /tmp/jadwal.csv | grep -qi "poli"; then
+            echo "::error::Isi CSV tidak seperti jadwal (baris pertama: $(head -1 /tmp/jadwal.csv)). Batal demi keamanan."
+            exit 1
+          fi
+          BARU=$(sha256sum /tmp/jadwal.csv | cut -d' ' -f1)
+          LAMA=$(cat .jadwal-terakhir 2>/dev/null || echo "-")
+          echo "sidik jari baru: $BARU"
+          echo "sidik jari lama: $LAMA"
+          if [ "$BARU" = "$LAMA" ]; then
+            echo "berubah=0" >> "$GITHUB_OUTPUT"
+            echo "Tidak ada perubahan — tidak perlu deploy."
+          else
+            echo "$BARU" > /tmp/sidik-baru
+            echo "berubah=1" >> "$GITHUB_OUTPUT"
+            echo "Ada perubahan — lanjut build & deploy."
+          fi
+
+      - name: Bangun ulang dokter.html
+        if: steps.cek.outputs.berubah == '1'
+        run: |
+          set -euo pipefail
+          python3 tools/fetch-google-sheet.py "$SHEET_CSV_URL"
+          python3 tools/banding-jadwal.py | tail -3 || true
+
+      - name: Siapkan folder publik
+        if: steps.cek.outputs.berubah == '1'
+        run: |
+          set -euo pipefail
+          rm -rf dist && mkdir -p dist/assets
+          cp ./*.html dist/
+          cp assets/style.css assets/main.js assets/logo.png dist/assets/
+          du -sh dist
+
+      - name: Deploy ke Netlify
+        if: steps.cek.outputs.berubah == '1'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${NETLIFY_AUTH_TOKEN:-}" ]; then
+            echo "::error::secret NETLIFY_AUTH_TOKEN belum diisi."
+            exit 1
+          fi
+          npm install -g netlify-cli --silent
+          netlify deploy --prod --dir dist --message "Auto (GitHub Actions): jadwal dokter"
+
+      - name: Simpan sidik jari & dokter.html
+        if: steps.cek.outputs.berubah == '1'
+        run: |
+          set -euo pipefail
+          cp /tmp/sidik-baru .jadwal-terakhir
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .jadwal-terakhir dokter.html
+          git commit -m "chore(auto): perbarui jadwal dokter $(date -u +%Y-%m-%dT%H:%MZ)" || echo "tidak ada yang berubah untuk di-commit"
+          git push
+
+      - name: Ringkasan
+        run: |
+          if [ "${{ steps.cek.outputs.berubah }}" = "1" ]; then
+            echo "✅ Jadwal diperbarui dan situs sudah di-deploy."
+          else
+            echo "⏸️  Tidak ada perubahan pada jadwal."
+          fi

@@ -6,3 +6,6 @@ dist/
 data/
 __pycache__/
 *.pyc
+
+# URL build hook (rahasia) — jangan pernah masuk repo
+google-apps-script/BUILD-HOOK.txt
