@@ -1,8 +1,11 @@
-waktu_utc: 2026-09-16T14:28:15Z
+waktu_utc: 2026-09-16T14:29:47Z
 alasan_awal: tidak-kosong
 panjang_url: 135
 pola_url: google
-kode_http: tidak diukur
-tipe_isi: tidak diukur
 berkolom_poli: tidak
-token_netlify_ada: tidak
+kode_http: 200
+content_type: text/html;
+ukuran_isi: 52670 byte
+awal_isi: !DOCTYPE htmlhtmlheadmeta name="W
+ada_d_e: ya
+akhiran_url: Ed8N6q_G7B/pubhtml
