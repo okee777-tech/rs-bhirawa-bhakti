@@ -1,11 +1,11 @@
-waktu_utc: 2026-09-16T14:29:47Z
+waktu_utc: 2026-09-16T14:32:41Z
 alasan_awal: tidak-kosong
 panjang_url: 135
 pola_url: google
 berkolom_poli: tidak
 kode_http: 200
 content_type: text/html;
-ukuran_isi: 52670 byte
+ukuran_isi: 52634 byte
 awal_isi: !DOCTYPE htmlhtmlheadmeta name="W
 ada_d_e: ya
 akhiran_url: Ed8N6q_G7B/pubhtml
