@@ -11,6 +11,7 @@ Output : menulis ulang isi di antara penanda
          <!-- JADWAL:MULAI --> ... <!-- JADWAL:SELESAI --> pada dokter.html
 """
 import csv
+import html
 import re
 from collections import OrderedDict
 from pathlib import Path
@@ -101,8 +102,49 @@ def jam_str(mulai, selesai):
     return f"{mulai} – {selesai}"
 
 
+def foto_url(raw):
+    """Kolom 'Foto' -> URL gambar siap pakai (drive thumbnail / URL langsung).
+
+    Mendukung:
+      - link Google Drive:  /file/d/<ID>/view, /open?id=<ID>, /uc?id=<ID>
+      - ID Drive mentah (kode panjang saja)
+      - URL gambar langsung (*.jpg/png/webp/gif)
+    Mengembalikan "" bila tidak dikenali (agar tampil avatar inisial).
+    """
+    s = str(raw or "").strip()
+    if not s:
+        return ""
+    if re.search(r"\.(png|jpe?g|webp|gif)(\?|$)", s, re.I):
+        return s
+    m = (re.search(r"/d/([A-Za-z0-9_-]{10,})", s)
+         or re.search(r"[?&]id=([A-Za-z0-9_-]{10,})", s))
+    fid = m.group(1) if m else ""
+    if not fid and re.fullmatch(r"[A-Za-z0-9_-]{20,}", s):
+        fid = s
+    if not fid:
+        return ""
+    return f"https://drive.google.com/thumbnail?id={fid}&sz=w400"
+
+
+def initials(name):
+    """Inisial untuk avatar bila belum ada foto (buang dr./drg. dan gelar)."""
+    kept = []
+    for tok in re.split(r"[\s,]+", clean_nama(name)):
+        tok = tok.strip()
+        if not tok:
+            continue
+        low = tok.lower()
+        if low in ("dr", "dr.", "drg", "drg."):
+            continue
+        if "." in tok:  # gelar: Sp.A / M.Biomed / dsb.
+            continue
+        kept.append(tok)
+    letters = [t[0].upper() for t in kept[:2]]
+    return "".join(letters) or "DR"
+
+
 def build_blocks(rows):
-    """CSV -> daftar blok HTML per poli (sudah urut)."""
+    """CSV -> daftar blok HTML per poli (kartu dokter, sudah urut)."""
     # filter & kelompokkan
     by_poli = OrderedDict()
     for r in rows:
@@ -111,7 +153,9 @@ def build_blocks(rows):
         poli = r["poli"]
         by_poli.setdefault(poli, OrderedDict())
         dok = by_poli[poli].setdefault(
-            r["dokter"], {"spes": r["spesialisasi"], "slots": OrderedDict()})
+            r["dokter"], {"spes": r["spesialisasi"],
+                          "foto": r.get("foto", ""),
+                          "slots": OrderedDict()})
         key = (r["jam_mulai"], r["jam_selesai"])
         dok["slots"].setdefault(key, []).append(HARI_IDX[r["hari"]])
 
@@ -124,36 +168,32 @@ def build_blocks(rows):
     for poli in polis:
         icon = icons.get(poli, ICON_DEFAULT)
         doctors = by_poli[poli]
-        has_spes = any(d["spes"] for d in doctors.values())
-        head = "<tr><th>Dokter</th>"
-        if has_spes:
-            head += "<th>Spesialisasi</th>"
-        head += "<th>Hari</th><th>Jam</th></tr>"
-
-        trs = []
+        cards = []
         for name, d in doctors.items():
-            entries = [(format_hari(days), jam_str(*slot)) for slot, days in d["slots"].items()]
-            n = len(entries)
-            for i, (hari, jam) in enumerate(entries):
-                cells = []
-                if i == 0:
-                    cells.append(f'<td rowspan="{n}"><strong>{clean_nama(name)}</strong></td>')
-                    if has_spes:
-                        cells.append(f'<td rowspan="{n}">{d["spes"]}</td>')
-                cells.append(f"<td>{hari}</td>")
-                cells.append(f"<td>{jam}</td>")
-                trs.append("<tr>" + "".join(cells) + "</tr>")
-
-        tbody = "".join(trs)
-        blocks.append(
-            f'<h2 class="poli-title">{icon} {poli}</h2>\n'
-            f'<div class="table-wrap">\n'
-            f'  <table class="schedule">\n'
-            f'    <thead>{head}</thead>\n'
-            f'    <tbody>{tbody}</tbody>\n'
-            f'  </table>\n'
-            f'</div>'
-        )
+            nama = html.escape(clean_nama(name))
+            url = foto_url(d.get("foto", ""))
+            if url:
+                avatar = (f'<div class="doctor-avatar">'
+                          f'<img src="{html.escape(url)}" alt="{nama}" loading="lazy"></div>')
+            else:
+                avatar = f'<div class="doctor-avatar">{html.escape(initials(name))}</div>'
+            spes = (f'<div class="spec">{html.escape(d["spes"])}</div>'
+                    if d["spes"] else "")
+            lines = []
+            for slot, days in d["slots"].items():
+                lines.append(f'<div class="sched-line">'
+                             f'<b>{html.escape(format_hari(days))}</b> {html.escape(jam_str(*slot))}</div>')
+            schedule = '<div class="schedule">' + "".join(lines) + "</div>"
+            cards.append(
+                f'<div class="card doctor-card">\n'
+                f'  {avatar}\n'
+                f'  <h3>{nama}</h3>\n'
+                f'  {spes}\n'
+                f'  {schedule}\n'
+                f'</div>'
+            )
+        grid = '<div class="doctor-grid">\n' + "\n".join(cards) + "\n</div>"
+        blocks.append(f'<h2 class="poli-title">{icon} {html.escape(poli)}</h2>\n{grid}')
     return blocks
 
 

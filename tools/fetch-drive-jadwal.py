@@ -181,6 +181,7 @@ def main():
             out.append({"poli": poli, "dokter": dokter,
                         "spesialisasi": row.get("spesialisasi", ""),
                         "hari": hari, "jam_mulai": jam_m, "jam_selesai": jam_s,
+                        "foto": row.get("foto", ""),
                         "sumber": "praktek"})
 
     if ditolak:
@@ -194,7 +195,7 @@ def main():
         raise SystemExit("FAIL: tidak ada baris jadwal valid.")
 
     DATA.mkdir(parents=True, exist_ok=True)
-    fields = ["poli", "dokter", "spesialisasi", "hari", "jam_mulai", "jam_selesai", "sumber"]
+    fields = ["poli", "dokter", "spesialisasi", "hari", "jam_mulai", "jam_selesai", "foto", "sumber"]
     with CSV_OUT.open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=fields)
         w.writeheader()

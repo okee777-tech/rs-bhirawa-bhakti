@@ -45,6 +45,7 @@ COLS = {
     "hari": ["hari", "hari praktek", "haripraktek"],
     "jam_mulai": ["jammulai", "mulai"],
     "jam_selesai": ["jamselesai", "selesai"],
+    "foto": ["foto", "fotodokter", "photo", "photodokter", "gambar", "linkfoto"],
 }
 
 
@@ -146,6 +147,7 @@ def main():
         poli = g(row, "poli").strip()
         dokter = g(row, "dokter").strip()
         spes = g(row, "spesialisasi").strip() if "spesialisasi" in cols else ""
+        foto = g(row, "foto").strip() if "foto" in cols else ""
         jam_m = norm_jam(g(row, "jam_mulai"))
         jam_s = norm_jam(g(row, "jam_selesai"))
         if not (poli and dokter):
@@ -162,7 +164,7 @@ def main():
             out.append({
                 "poli": poli, "dokter": dokter, "spesialisasi": spes,
                 "hari": hari, "jam_mulai": jam_m, "jam_selesai": jam_s,
-                "sumber": "praktek",
+                "foto": foto, "sumber": "praktek",
             })
 
     if ditolak:
@@ -171,7 +173,7 @@ def main():
                  + "\n  Format hari yang benar: Senin | Senin - Jumat | Senin, Rabu, Jumat")
 
     DATA.mkdir(parents=True, exist_ok=True)
-    fields = ["poli", "dokter", "spesialisasi", "hari", "jam_mulai", "jam_selesai", "sumber"]
+    fields = ["poli", "dokter", "spesialisasi", "hari", "jam_mulai", "jam_selesai", "foto", "sumber"]
     with CSV_OUT.open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=fields)
         w.writeheader()

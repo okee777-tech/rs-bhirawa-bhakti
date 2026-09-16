@@ -186,15 +186,19 @@ ul { list-style: none; }
 
 /* ---------- Doctors ---------- */
 .doctor-card { text-align: center; }
+.doctor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.4rem; }
 .doctor-avatar {
   width: 96px; height: 96px; border-radius: 50%; margin: 0 auto 1rem;
   background: linear-gradient(135deg, var(--primary-600), var(--primary-800));
   color: #fff; display: grid; place-items: center; font-size: 1.9rem; font-weight: 700;
+  overflow: hidden;
 }
-.doctor-card h3 { font-size: 1rem; }
+.doctor-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.doctor-card h3 { font-size: 1rem; line-height: 1.4; }
 .doctor-card .spec { color: var(--primary-700); font-weight: 600; font-size: .85rem; margin: .2rem 0 .5rem; }
 .doctor-card .schedule { font-size: .82rem; color: var(--muted); }
-.doctor-card .schedule b { color: var(--ink); }
+.doctor-card .schedule b { color: var(--ink); font-weight: 600; }
+.sched-line { padding: .12rem 0; }
 
 /* ---------- Articles ---------- */
 .article-card { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
