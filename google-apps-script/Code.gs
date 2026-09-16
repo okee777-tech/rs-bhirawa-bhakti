@@ -3,28 +3,10 @@
  * Edit Google Sheet -> dalam <=5 menit GitHub Actions jalan -> website update sendiri.
  *
  * ===== CARA PASANG (sekali saja) =====
- *   1) Buat GitHub PAT (token):
- *      - Buka https://github.com/settings/tokens?type=beta  (Fine-grained token)
- *      - Klik "Generate new token"
- *      - Token name: bebas (mis. "rsbb-trigger")
- *      - Expiration: mis. 90 hari
- *      - Repository access: "Only select repositories" -> pilih  okee777-tech/rs-bhirawa-bhakti
- *      - Permissions -> "Workflows": pilih "Read and write"
- *      - Klik "Generate token", lalu SALIN tokennya (diawali github_pat_...)
- *
- *   2) Buka Google Sheet "JADWAL DOKTER (Website)".
- *      Menu: Ekstensi -> Apps Script.
- *
- *   3) Hapus isi editor, tempel SELURUH isi file ini, lalu simpan
- *      (beri nama mis. "Trigger Deploy Jadwal").
- *
- *   4) Di editor, jalankan fungsi setToken dengan token tadi:
- *         setToken('github_pat_xxxxxxxx')
- *      lalu klik "Review permissions" / izinkan akses.
- *
- *   5) Jalankan fungsi setup() untuk memasang trigger.
- *
- *   6) Tes: edit satu sel di sheet, tunggu <=5 menit, cek situs.
+ *   1) Tempel token di baris TOKEN_GITHUB di bawah (lihat tanda "TEMPEL DI SINI").
+ *   2) Di editor Apps Script, jalankan fungsi simpanToken() (sekali).
+ *   3) Jalankan fungsi setup() (sekali).
+ *   4) Tes: edit satu sel di sheet, tunggu <=5 menit, cek situs.
  */
 
 const PROP_TOKEN = 'GITHUB_PAT';
@@ -32,10 +14,19 @@ const PROP_PENDING = 'PENDING_EDIT';
 const REPO = 'okee777-tech/rs-bhirawa-bhakti';
 const WORKFLOW = 'deploy-jadwal.yml';
 
-/** Simpan token GitHub (jalankan sekali). */
-function setToken(token) {
-  PropertiesService.getScriptProperties().setProperty(PROP_TOKEN, token);
-  Logger.log('Token tersimpan (panjang ' + token.length + ').');
+// ===== TEMPEL DI SINI =====
+// Ganti teks 'TEMPEL_TOKEN_ANDA' dengan token GitHub Anda (diawali github_pat_...).
+// Contoh: const TOKEN_GITHUB = 'github_pat_11AAABBBCCCDDD...';
+const TOKEN_GITHUB = 'TEMPEL_TOKEN_ANDA';
+
+/** Simpan token dari TOKEN_GITHUB ke penyimpanan script (jalankan sekali). */
+function simpanToken() {
+  if (TOKEN_GITHUB === 'TEMPEL_TOKEN_ANDA' || TOKEN_GITHUB === '') {
+    Logger.log('⚠️ Anda belum menempel token. Isi TOKEN_GITHUB di baris atas dulu.');
+    return;
+  }
+  PropertiesService.getScriptProperties().setProperty(PROP_TOKEN, TOKEN_GITHUB);
+  Logger.log('OK: token tersimpan (panjang ' + TOKEN_GITHUB.length + ').');
 }
 
 /** Pasang trigger onEdit + penjadwal 5 menit (jalankan sekali). */
@@ -66,7 +57,7 @@ function checkAndDeploy() {
 
   const token = p.getProperty(PROP_TOKEN);
   if (!token) {
-    Logger.log('Token belum di-set. Jalankan setToken(...) dulu.');
+    Logger.log('Token belum di-set. Jalankan simpanToken() dulu.');
     return;
   }
 
