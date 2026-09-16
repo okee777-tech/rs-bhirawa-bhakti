@@ -25,7 +25,6 @@ MARK_MULAI = "<!-- JADWAL:MULAI -->"
 MARK_SELESAI = "<!-- JADWAL:SELESAI -->"
 IDX_MULAI = "<!-- DOKTER:MULAI -->"
 IDX_SELESAI = "<!-- DOKTER:SELESAI -->"
-HOME_LIMIT = 4  # jumlah kartu dokter di beranda
 
 HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
 HARI_IDX = {h: i for i, h in enumerate(HARI)}
@@ -225,7 +224,7 @@ def compact_schedule(slots):
 
 
 def build_home_cards(rows):
-    """Kartu dokter untuk beranda: 1 dokter dari tiap poli (maks HOME_LIMIT poli)."""
+    """Semua dokter -> kartu untuk beranda (scroll horizontal)."""
     by_poli = OrderedDict()
     for r in rows:
         if r["sumber"] != "praktek":
@@ -241,24 +240,24 @@ def build_home_cards(rows):
     polis = sorted(by_poli.keys(), key=lambda p: order_map.get(p, len(POLI_ORDER)))
 
     cards = []
-    for poli in polis[:HOME_LIMIT]:
-        name, d = next(iter(by_poli[poli].items()))
-        nama = html.escape(clean_nama(name))
-        url = foto_url(d.get("foto", ""))
-        avatar = (f'<div class="doctor-avatar">'
-                  f'<img src="{html.escape(url)}" alt="{nama}" loading="lazy"></div>'
-                  if url else f'<div class="doctor-avatar">{html.escape(initials(name))}</div>')
-        spec = html.escape(poli_spec(poli))
-        schedule = compact_schedule(d["slots"])
-        cards.append(
-            f'<div class="card doctor-card">\n'
-            f'  {avatar}\n'
-            f'  <h3>{nama}</h3>\n'
-            f'  <div class="spec">{spec}</div>\n'
-            f'  <div class="schedule">{schedule}</div>\n'
-            f'</div>'
-        )
-    return '<div class="grid grid-4">\n' + "\n".join(cards) + '\n</div>'
+    for poli in polis:
+        for name, d in by_poli[poli].items():
+            nama = html.escape(clean_nama(name))
+            url = foto_url(d.get("foto", ""))
+            avatar = (f'<div class="doctor-avatar">'
+                      f'<img src="{html.escape(url)}" alt="{nama}" loading="lazy"></div>'
+                      if url else f'<div class="doctor-avatar">{html.escape(initials(name))}</div>')
+            spec = html.escape(poli_spec(poli))
+            schedule = compact_schedule(d["slots"])
+            cards.append(
+                f'<div class="card doctor-card">\n'
+                f'  {avatar}\n'
+                f'  <h3>{nama}</h3>\n'
+                f'  <div class="spec">{spec}</div>\n'
+                f'  <div class="schedule">{schedule}</div>\n'
+                f'</div>'
+            )
+    return '<div class="doctor-scroll">\n' + "\n".join(cards) + '\n</div>'
 
 
 def main():
@@ -296,7 +295,7 @@ def main():
             k2 = idx.index(IDX_SELESAI)
             idx = idx[:k1] + "\n" + home + "\n      " + idx[k2:]
             INDEX.write_text(idx, encoding="utf-8")
-            print(f"✅ index.html ditulis ulang: {HOME_LIMIT} kartu dokter beranda.")
+            print(f"✅ index.html ditulis ulang: {n_dok} kartu dokter beranda.")
         else:
             print(f"⚠️ penanda {IDX_MULAI}/{IDX_SELESAI} tidak ada di index.html (beranda dilewati).")
     else:

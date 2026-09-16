@@ -187,6 +187,20 @@ ul { list-style: none; }
 /* ---------- Doctors ---------- */
 .doctor-card { text-align: center; }
 .doctor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.4rem; }
+.doctor-scroll {
+  display: flex;
+  gap: 1.2rem;
+  overflow-x: auto;
+  padding: .5rem .25rem 1.1rem;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.doctor-scroll .doctor-card {
+  flex: 0 0 auto;
+  width: 260px;
+  scroll-snap-align: start;
+}
 .doctor-avatar {
   width: 96px; height: 96px; border-radius: 50%; margin: 0 auto 1rem;
   background: linear-gradient(135deg, var(--primary-600), var(--primary-800));
