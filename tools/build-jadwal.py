@@ -19,9 +19,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 CSV = ROOT / "data" / "jadwal-dokter.csv"
 HTML = ROOT / "dokter.html"
+INDEX = ROOT / "index.html"
 
 MARK_MULAI = "<!-- JADWAL:MULAI -->"
 MARK_SELESAI = "<!-- JADWAL:SELESAI -->"
+IDX_MULAI = "<!-- DOKTER:MULAI -->"
+IDX_SELESAI = "<!-- DOKTER:SELESAI -->"
+HOME_LIMIT = 4  # jumlah kartu dokter di beranda
 
 HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
 HARI_IDX = {h: i for i, h in enumerate(HARI)}
@@ -197,6 +201,66 @@ def build_blocks(rows):
     return blocks
 
 
+def poli_spec(poli):
+    """Label spesialisasi singkat untuk kartu beranda (dari nama poli)."""
+    base = re.sub(r"^Poli\s+", "", poli)
+    base = re.sub(r"\s*\(.*?\)", "", base)
+    if base.lower().startswith("gigi"):
+        return base
+    return "Spesialis " + base
+
+
+def compact_schedule(slots):
+    """Ringkasan jadwal singkat untuk kartu beranda."""
+    all_days = set()
+    times = set()
+    for (m, s), days in slots.items():
+        all_days.update(days)
+        times.add(jam_str(m, s))
+    hari = format_hari(all_days)
+    if len(times) == 1:
+        return (f'Jadwal: <b>{html.escape(hari)}</b><br />'
+                f'{html.escape(times.pop())} WIB')
+    return f'Jadwal: <b>{html.escape(hari)}</b><br />Lihat jadwal lengkap'
+
+
+def build_home_cards(rows):
+    """Kartu dokter untuk beranda: 1 dokter dari tiap poli (maks HOME_LIMIT poli)."""
+    by_poli = OrderedDict()
+    for r in rows:
+        if r["sumber"] != "praktek":
+            continue
+        poli = r["poli"]
+        by_poli.setdefault(poli, OrderedDict())
+        dok = by_poli[poli].setdefault(
+            r["dokter"], {"foto": r.get("foto", ""), "slots": OrderedDict()})
+        key = (r["jam_mulai"], r["jam_selesai"])
+        dok["slots"].setdefault(key, []).append(HARI_IDX[r["hari"]])
+
+    order_map = {name: i for i, (name, _) in enumerate(POLI_ORDER)}
+    polis = sorted(by_poli.keys(), key=lambda p: order_map.get(p, len(POLI_ORDER)))
+
+    cards = []
+    for poli in polis[:HOME_LIMIT]:
+        name, d = next(iter(by_poli[poli].items()))
+        nama = html.escape(clean_nama(name))
+        url = foto_url(d.get("foto", ""))
+        avatar = (f'<div class="doctor-avatar">'
+                  f'<img src="{html.escape(url)}" alt="{nama}" loading="lazy"></div>'
+                  if url else f'<div class="doctor-avatar">{html.escape(initials(name))}</div>')
+        spec = html.escape(poli_spec(poli))
+        schedule = compact_schedule(d["slots"])
+        cards.append(
+            f'<div class="card doctor-card">\n'
+            f'  {avatar}\n'
+            f'  <h3>{nama}</h3>\n'
+            f'  <div class="spec">{spec}</div>\n'
+            f'  <div class="schedule">{schedule}</div>\n'
+            f'</div>'
+        )
+    return '<div class="grid grid-4">\n' + "\n".join(cards) + '\n</div>'
+
+
 def main():
     if not CSV.exists():
         raise SystemExit(f"FAIL: {CSV} belum ada. Jalankan tools/extract-jadwal.py dulu.")
@@ -222,6 +286,21 @@ def main():
     n_dok = len({r["dokter"] for r in praktek})
     print(f"✅ dokter.html ditulis ulang: {n_poli} poli, {n_dok} dokter, "
           f"{len(praktek)} slot jadwal.")
+
+    # --- Beranda: kartu dokter (preview) ---
+    if INDEX.exists():
+        idx = INDEX.read_text(encoding="utf-8")
+        if IDX_MULAI in idx and IDX_SELESAI in idx:
+            home = build_home_cards(rows)
+            k1 = idx.index(IDX_MULAI) + len(IDX_MULAI)
+            k2 = idx.index(IDX_SELESAI)
+            idx = idx[:k1] + "\n" + home + "\n      " + idx[k2:]
+            INDEX.write_text(idx, encoding="utf-8")
+            print(f"✅ index.html ditulis ulang: {HOME_LIMIT} kartu dokter beranda.")
+        else:
+            print(f"⚠️ penanda {IDX_MULAI}/{IDX_SELESAI} tidak ada di index.html (beranda dilewati).")
+    else:
+        print("⚠️ index.html tidak ditemukan.")
 
 
 if __name__ == "__main__":
