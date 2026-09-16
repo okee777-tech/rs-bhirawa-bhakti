@@ -1,13 +1,2 @@
-waktu_utc: 2026-09-16T14:59:39Z
-alasan_awal: tidak-kosong
-panjang_url: 135
-pola_url: google
-berkolom_poli: tidak
-jumlah_coba: 0
-awal_unduhan: tidak-ada
-kode_http: 200
-content_type: application/binary
-ukuran_isi: 4198 byte
-awal_isi: Poli,Dokter,Spesialisasi,Hari,Jam Mulai,
-ada_d_e: ya
-akhiran_url: G7B/pub?output=csv
+waktu_utc: 2026-09-16T15:10:00Z
+status: OK — pipeline berhasil (run #9 sukses, deploy "Auto (GitHub Actions): jadwal dokter").
