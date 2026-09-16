@@ -133,10 +133,16 @@ jobs:
             echo "alasan_awal: ${SEBAB:-tidak diketahui}"
             echo "panjang_url: ${PANJANG_URL:-0}"
             echo "pola_url: ${POLA_URL:-tidak diperiksa}"
-            echo "kode_http: ${KODE_HTTP:-tidak diukur}"
-            echo "tipe_isi: ${TIPE_ISI:-tidak diukur}"
             echo "berkolom_poli: ${BERKOLOM_POLI:-tidak}"
-            echo "token_netlify_ada: $([ -n "${NETLIFY_AUTH_TOKEN:-}" ] && echo ya || echo tidak)"
+            # Ukur ulang di sini supaya angkanya pasti terekam (tidak mengandalkan GITHUB_ENV).
+            if [ -n "${SHEET_CSV_URL:-}" ]; then
+              echo "kode_http: $(curl -sSL -o /tmp/cek.csv -w '%{http_code}' --max-time 30 "$SHEET_CSV_URL" || echo gagal)"
+              echo "content_type: $(curl -sSLI --max-time 20 "$SHEET_CSV_URL" | tr -d '\r' | awk 'tolower($1)=="content-type:"{print $2; exit}')"
+              echo "ukuran_isi: $(wc -c < /tmp/cek.csv 2>/dev/null || echo 0) byte"
+              echo "awal_isi: $(head -c 40 /tmp/cek.csv 2>/dev/null | tr -d '\n\r' | tr -d '<>')"
+              echo "ada_d_e: $(case "$SHEET_CSV_URL" in *"/d/e/"*) echo ya;; *) echo tidak;; esac)"
+              echo "akhiran_url: $(printf '%s' "$SHEET_CSV_URL" | rev | cut -c1-18 | rev)"
+            fi
           } > STATUS.txt
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
