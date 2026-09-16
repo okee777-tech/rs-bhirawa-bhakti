@@ -364,6 +364,9 @@ kalau akses Google mati.
 
 ## 13. Level 2 — Otomasi Penuh (GitHub + Netlify Build Hook)
 
+> **Catatan:** jalur yang **dipakai sekarang** adalah **§14 (GitHub Actions)**.
+> Bagian ini menjelaskan alternatif Netlify Build Hook yang belum dipakai.
+
 Membuat situs update **sendiri tanpa komputer ini**. Level 1 (§8) masih butuh komputer
 ini hidup + `gog`. Level 2 memindahkan build ke server Netlify: tidak ada polling lokal,
 tidak ada ketergantungan token Google di mesin ini.
@@ -411,3 +414,46 @@ Google Sheet ──(staf edit)──▶ Apps Script (onEdit → penjadwal 5 mnt)
 Catatan: build di server memakai `fetch-google-sheet.py` (URL publik) — **bukan** `gog`.
 Jadi mode ini tidak butuh token Google di komputer ini. Mode Level 1 tetap bisa dipakai
 sebagai cadangan.
+
+## 14. Jalur yang dipakai sekarang: GitHub Actions (16 Sep 2026)
+
+> **Ini jalur produksi.** Jalur Netlify Build Hook (§13) tetap tersimpan sebagai alternatif,
+> tapi tidak dipakai karena menuntut penyambungan Netlify–Git dan pemasangan Apps Script.
+
+**Alur:**
+
+```
+Google Sheet ──(Publish to web, CSV publik)──▶ GitHub Actions (tiap 10 menit)
+                                                  │ bandingkan sha256 — berubah?
+                                                  ▼
+                        bangun dokter.html ──▶ deploy ke Netlify (CLI + token)
+```
+
+**Berkasnya:** `.github/workflows/deploy-jadwal.yml`
+
+**Cara kerjanya:**
+
+1. Tiap 10 menit GitHub menjalankan workflow di server GitHub — **tidak butuh komputer ini hidup**.
+2. Unduh CSV dari `SHEET_CSV_URL`; **ditolak** kalau isinya bukan CSV jadwal (tanpa kolom `Poli`).
+3. Bandingkan sha256 dengan berkas `.jadwal-terakhir` di repo → kalau sama, **berhenti tanpa deploy**.
+4. Kalau beda: jalankan `tools/fetch-google-sheet.py` (sekaligus memvalidasi hari) → bangun
+   `dokter.html` → staging `dist/` → `netlify deploy --prod`.
+5. Commit kembali `.jadwal-terakhir` + `dokter.html` supaya repo tetap mencerminkan isi situs.
+
+**Prasyarat (pasang sekali, oleh pemilik akun):**
+
+| Yang perlu | Di mana | Sifat |
+|---|---|---|
+| `SHEET_CSV_URL` | GitHub → Settings → Secrets and variables → Actions → **Variables** | publik (URL CSV) |
+| `NETLIFY_AUTH_TOKEN` | GitHub → Settings → Secrets and variables → Actions → **Secrets** | **rahasia** — jangan pernah ditempel di chat |
+
+Token Netlify dibuat di: Netlify → User settings → Applications → Personal access tokens → New access token.
+
+**Kenapa bukan jalur Netlify–Git:** API Netlify tidak menyediakan cara menyambungkan situs ke
+repo (`unlinkSiteRepo` ada, `linkSiteToRepo` tidak), dan repo dimiliki akun GitHub
+`okee777-tech` sedangkan Netlify login memakai akun Google. GitHub Actions menghindari
+kedua hambatan itu. Build hook Netlify yang sempat dibuat tidak diperlukan lagi.
+
+**Catatan pemeliharaan:** repo bersifat publik → jatah menit GitHub Actions tidak terbatas.
+Workflow terjadwal GitHub dinonaktifkan otomatis setelah 60 hari tanpa aktivitas repo;
+kalau terjadi, cukup ada commit/perubahan apa pun untuk mengaktifkannya kembali.
