@@ -10,7 +10,7 @@ on:
   workflow_dispatch:          # bisa dijalankan manual dari tab Actions
 
 permissions:
-  contents: write             # untuk menyimpan sidik jari + dokter.html
+  contents: write             # untuk menyimpan sidik jari + dokter.html + STATUS.txt
 
 concurrency:
   group: deploy-jadwal
@@ -33,16 +33,33 @@ jobs:
       - name: Ambil jadwal dari Google Sheet & bandingkan sidik jari
         id: cek
         run: |
-          set -euo pipefail
+          set -uo pipefail
+
           if [ -z "${SHEET_CSV_URL:-}" ]; then
+            echo "SEBAB=kosong" >> "$GITHUB_ENV"
             echo "::error::SHEET_CSV_URL belum diisi (Settings -> Secrets and variables -> Actions)."
             exit 1
           fi
-          curl -sSL --fail --max-time 60 "$SHEET_CSV_URL" -o /tmp/jadwal.csv
-          if ! head -1 /tmp/jadwal.csv | grep -qi "poli"; then
-            echo "::error::Isi CSV tidak seperti jadwal (baris pertama: $(head -1 /tmp/jadwal.csv)). Batal demi keamanan."
+          echo "SEBAB=tidak-kosong" >> "$GITHUB_ENV"
+          echo "PANJANG_URL=${#SHEET_CSV_URL}" >> "$GITHUB_ENV"
+          case "$SHEET_CSV_URL" in
+            https://docs.google.com/*) echo "POLA_URL=google" >> "$GITHUB_ENV" ;;
+            *) echo "POLA_URL=lain" >> "$GITHUB_ENV" ;;
+          esac
+
+          KODE=$(curl -sSL --max-time 60 -o /tmp/jadwal.csv -w "%{http_code}" "$SHEET_CSV_URL" || echo "000")
+          TIPE=$(curl -sSLI --max-time 30 "$SHEET_CSV_URL" | tr -d '\r' | awk 'tolower($1)=="content-type:"{print $2; exit}')
+          echo "KODE_HTTP=$KODE" >> "$GITHUB_ENV"
+          echo "TIPE_ISI=${TIPE:-tidak-ada}" >> "$GITHUB_ENV"
+
+          if head -1 /tmp/jadwal.csv 2>/dev/null | grep -qi "poli"; then
+            echo "BERKOLOM_POLI=ya" >> "$GITHUB_ENV"
+          else
+            echo "BERKOLOM_POLI=tidak" >> "$GITHUB_ENV"
+            echo "::error::Isi yang diunduh bukan CSV jadwal (HTTP $KODE, tipe ${TIPE:-?}). Batal demi keamanan."
             exit 1
           fi
+
           BARU=$(sha256sum /tmp/jadwal.csv | cut -d' ' -f1)
           LAMA=$(cat .jadwal-terakhir 2>/dev/null || echo "-")
           echo "sidik jari baru: $BARU"
@@ -79,6 +96,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${NETLIFY_AUTH_TOKEN:-}" ]; then
+            echo "SEBAB=token-netlify-kosong" >> "$GITHUB_ENV"
             echo "::error::secret NETLIFY_AUTH_TOKEN belum diisi."
             exit 1
           fi
@@ -104,3 +122,24 @@ jobs:
           else
             echo "⏸️  Tidak ada perubahan pada jadwal."
           fi
+
+      # Log GitHub tidak bisa dibaca tanpa login, jadi sebab kegagalan ditulis ke repo
+      # (hanya metadata teknis — tidak memuat isi URL maupun token).
+      - name: Catat sebab kegagalan (agar bisa didiagnosis dari luar)
+        if: failure()
+        run: |
+          {
+            echo "waktu_utc: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "alasan_awal: ${SEBAB:-tidak diketahui}"
+            echo "panjang_url: ${PANJANG_URL:-0}"
+            echo "pola_url: ${POLA_URL:-tidak diperiksa}"
+            echo "kode_http: ${KODE_HTTP:-tidak diukur}"
+            echo "tipe_isi: ${TIPE_ISI:-tidak diukur}"
+            echo "berkolom_poli: ${BERKOLOM_POLI:-tidak}"
+            echo "token_netlify_ada: $([ -n "${NETLIFY_AUTH_TOKEN:-}" ] && echo ya || echo tidak)"
+          } > STATUS.txt
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add STATUS.txt
+          git commit -m "chore(auto): catatan kegagalan build [skip ci]" || true
+          git push || true
