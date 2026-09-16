@@ -56,15 +56,15 @@ jobs:
               ;;
           esac
 
-          # Unduh dengan coba-ulang: unduhan pertama ke Google kadang masih HTML
-          # "menyiapkan", baru unduhan berikutnya benar-benar CSV.
+          # Unduh dengan coba-ulang: unduhan pertama ke Google dari IP baru kadang
+          # masih HTML "loading" sampai CSV-nya siap. Tunggu hingga ~60 detik.
           KODE="000"
-          for i in 1 2 3; do
+          for i in 1 2 3 4 5 6; do
             KODE=$(curl -sSL --max-time 60 -o /tmp/jadwal.csv -w "%{http_code}" "$SHEET_CSV_URL" || echo "000")
             if head -1 /tmp/jadwal.csv 2>/dev/null | grep -qi "poli"; then
               break
             fi
-            sleep 5
+            sleep 10
           done
           TIPE=$(curl -sSLI --max-time 30 "$SHEET_CSV_URL" | tr -d '\r' | awk 'tolower($1)=="content-type:"{print $2; exit}')
           echo "KODE_HTTP=$KODE" >> "$GITHUB_ENV"
