@@ -18,6 +18,7 @@ Format kolom yang diharapkan (judul boleh beda kapital):
 Output : data/jadwal-dokter.csv (kanonik) + dokter.html (dibangun ulang).
 """
 import csv
+import os
 import re
 import subprocess
 import sys
@@ -27,7 +28,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 CSV_OUT = DATA / "jadwal-dokter.csv"
+LAYANAN_OUT = DATA / "layanan.csv"
 URL_FILE = DATA / "gsheet-url.txt"
+LAYANAN_URL_FILE = DATA / "layanan-url.txt"
 BUILD = ROOT / "tools" / "build-jadwal.py"
 
 HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
@@ -48,17 +51,27 @@ COLS = {
     "foto": ["foto", "fotodokter", "photo", "photodokter", "gambar", "linkfoto"],
 }
 
+# kolom tab "Layanan" -> kandidat header
+COLS_LAYANAN = {
+    "layanan": ["layanan", "nama", "namalayanan", "poliklinik", "poli", "pelayanan"],
+    "ikon": ["ikon", "icon", "emoji"],
+    "deskripsi": ["deskripsi", "keterangan", "deskripsilayanan"],
+    "foto": ["foto", "gambar", "photo", "linkfoto", "fotolayanan"],
+    "telepon": ["telepon", "telp", "notelepon", "nomortelepon", "kontak", "telepone"],
+    "jadwal": ["jadwal", "jadwallayanan", "jambuka", "jampelayanan", "jampraktek"],
+}
+
 
 def norm_hdr(h):
     return re.sub(r"[^a-z]", "", str(h or "").lower())
 
 
-def find_cols(headers):
+def find_cols(headers, cols_map):
     """Header baris -> dict kolom kanonik: indeks kolom (0-based)."""
     found = {}
     for i, h in enumerate(headers):
         key = norm_hdr(h)
-        for canon, cands in COLS.items():
+        for canon, cands in cols_map.items():
             if canon not in found and key in cands:
                 found[canon] = i
     return found
@@ -112,6 +125,46 @@ def read_source(src):
     return Path(src).read_text(encoding="utf-8-sig")
 
 
+def fetch_layanan(src):
+    """Ambil tab Layanan -> data/layanan.csv. Balikan True kalau berhasil."""
+    text = read_source(src)
+    rows = list(csv.DictReader(text.splitlines()))
+    if not rows:
+        print("⚠️  Layanan: CSV kosong / header tidak terbaca (dilewati).")
+        return False
+    cols = find_cols(rows[0].keys(), COLS_LAYANAN)
+    if "layanan" not in cols:
+        print(f"⚠️  Layanan: kolom 'Layanan' tidak ditemukan. Header: {list(rows[0].keys())}")
+        return False
+
+    def g(row, canon):
+        i = cols.get(canon)
+        return "" if i is None else list(row.values())[i]
+
+    out = []
+    for row in rows:
+        nama = g(row, "layanan").strip()
+        if not nama:
+            continue
+        out.append({
+            "layanan": nama,
+            "ikon": g(row, "ikon").strip(),
+            "deskripsi": g(row, "deskripsi").strip(),
+            "foto": g(row, "foto").strip(),
+            "telepon": g(row, "telepon").strip(),
+            "jadwal": g(row, "jadwal").strip(),
+        })
+
+    LAYANAN_OUT.parent.mkdir(parents=True, exist_ok=True)
+    fields = ["layanan", "ikon", "deskripsi", "foto", "telepon", "jadwal"]
+    with LAYANAN_OUT.open("w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=fields)
+        w.writeheader()
+        w.writerows(out)
+    print(f"✅ {len(out)} layanan -> {LAYANAN_OUT.name}")
+    return True
+
+
 def main():
     if len(sys.argv) > 1:
         src = sys.argv[1].strip()
@@ -130,7 +183,7 @@ def main():
     if not rows:
         sys.exit("FAIL: CSV kosong / header tidak terbaca.")
 
-    cols = find_cols(rows[0].keys())
+    cols = find_cols(rows[0].keys(), COLS)
     need = ["poli", "dokter", "hari", "jam_mulai", "jam_selesai"]
     missing = [c for c in need if c not in cols]
     if missing:
@@ -184,7 +237,21 @@ def main():
         print("⚠️  peringatan:")
         print("\n".join(warn))
 
-    # bangun ulang dokter.html
+    # --- tab Layanan (opsional) ---
+    layanan_src = None
+    if len(sys.argv) > 2:
+        layanan_src = sys.argv[2].strip()
+    elif os.environ.get("LAYANAN_CSV_URL"):
+        layanan_src = os.environ["LAYANAN_CSV_URL"].strip()
+    elif LAYANAN_URL_FILE.exists():
+        layanan_src = LAYANAN_URL_FILE.read_text(encoding="utf-8").strip().splitlines()[0]
+
+    if layanan_src and layanan_src.startswith("http"):
+        DATA.mkdir(parents=True, exist_ok=True)
+        LAYANAN_URL_FILE.write_text(layanan_src + "\n", encoding="utf-8")
+        fetch_layanan(layanan_src)
+
+    # bangun ulang dokter.html + kartu layanan di index.html
     subprocess.run([sys.executable, str(BUILD)], check=True)
 
 

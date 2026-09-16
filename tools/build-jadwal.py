@@ -12,6 +12,7 @@ Output : menulis ulang isi di antara penanda
 """
 import csv
 import html
+import json
 import re
 from collections import OrderedDict
 from pathlib import Path
@@ -20,11 +21,14 @@ ROOT = Path(__file__).resolve().parent.parent
 CSV = ROOT / "data" / "jadwal-dokter.csv"
 HTML = ROOT / "dokter.html"
 INDEX = ROOT / "index.html"
+LAYANAN_CSV = ROOT / "data" / "layanan.csv"
 
 MARK_MULAI = "<!-- JADWAL:MULAI -->"
 MARK_SELESAI = "<!-- JADWAL:SELESAI -->"
 IDX_MULAI = "<!-- DOKTER:MULAI -->"
 IDX_SELESAI = "<!-- DOKTER:SELESAI -->"
+LAY_MULAI = "<!-- LAYANAN:MULAI -->"
+LAY_SELESAI = "<!-- LAYANAN:SELESAI -->"
 
 HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
 HARI_IDX = {h: i for i, h in enumerate(HARI)}
@@ -105,7 +109,7 @@ def jam_str(mulai, selesai):
     return f"{mulai} – {selesai}"
 
 
-def foto_url(raw):
+def foto_url(raw, size="w400"):
     """Kolom 'Foto' -> URL gambar siap pakai (drive thumbnail / URL langsung).
 
     Mendukung:
@@ -126,7 +130,7 @@ def foto_url(raw):
         fid = s
     if not fid:
         return ""
-    return f"https://drive.google.com/thumbnail?id={fid}&sz=w400"
+    return f"https://drive.google.com/thumbnail?id={fid}&sz={size}"
 
 
 def initials(name):
@@ -260,6 +264,49 @@ def build_home_cards(rows):
     return '<div class="doctor-scroll">\n' + "\n".join(cards) + '\n</div>'
 
 
+def build_layanan():
+    """Kartu layanan + data modal untuk beranda (dari data/layanan.csv)."""
+    if not LAYANAN_CSV.exists():
+        return None
+    with LAYANAN_CSV.open(newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    rows = [r for r in rows if (r.get("layanan") or "").strip()]
+    if not rows:
+        return None
+
+    cards, data = [], []
+    for i, r in enumerate(rows):
+        nama = (r.get("layanan") or "").strip()
+        ikon = (r.get("ikon") or "").strip() or "🏥"
+        deskripsi = (r.get("deskripsi") or "").strip()
+        telepon = (r.get("telepon") or "").strip()
+        jadwal = (r.get("jadwal") or "").strip()
+        foto = foto_url(r.get("foto", ""), size="w800")
+
+        cards.append(
+            f'<div class="card service-card" data-layanan="{i}" role="button" tabindex="0">\n'
+            f'  <div class="icon">{html.escape(ikon)}</div>\n'
+            f'  <h3>{html.escape(nama)}</h3>\n'
+            f'  <p>{html.escape(deskripsi)}</p>\n'
+            f'  <span class="service-more">Lihat info &amp; jadwal →</span>\n'
+            f'</div>'
+        )
+        data.append({
+            "nama": nama,
+            "ikon": ikon,
+            "deskripsi": deskripsi,
+            "foto": foto,
+            "telepon": telepon,
+            "jadwal": jadwal,
+        })
+
+    grid = '<div class="grid grid-4">\n' + "\n".join(cards) + '\n</div>'
+    script = ('<script>window.LAYANAN_DATA = '
+              + json.dumps(data, ensure_ascii=False)
+              + ';</script>')
+    return grid + "\n" + script
+
+
 def main():
     if not CSV.exists():
         raise SystemExit(f"FAIL: {CSV} belum ada. Jalankan tools/extract-jadwal.py dulu.")
@@ -300,6 +347,23 @@ def main():
             print(f"⚠️ penanda {IDX_MULAI}/{IDX_SELESAI} tidak ada di index.html (beranda dilewati).")
     else:
         print("⚠️ index.html tidak ditemukan.")
+
+    # --- Beranda: kartu layanan (klik -> modal) ---
+    if INDEX.exists():
+        idx = INDEX.read_text(encoding="utf-8")
+        if LAY_MULAI in idx and LAY_SELESAI in idx:
+            lay = build_layanan()
+            if lay:
+                l1 = idx.index(LAY_MULAI) + len(LAY_MULAI)
+                l2 = idx.index(LAY_SELESAI)
+                idx = idx[:l1] + "\n" + lay + "\n      " + idx[l2:]
+                INDEX.write_text(idx, encoding="utf-8")
+                n_lay = lay.count('class="card service-card"')
+                print(f"✅ index.html: {n_lay} kartu layanan ditulis.")
+            else:
+                print("⚠️ data/layanan.csv kosong/tidak ada — kartu layanan dibiarkan apa adanya.")
+        else:
+            print(f"⚠️ penanda {LAY_MULAI}/{LAY_SELESAI} tidak ada di index.html.")
 
 
 if __name__ == "__main__":

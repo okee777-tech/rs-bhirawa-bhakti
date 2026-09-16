@@ -183,6 +183,9 @@ ul { list-style: none; }
 }
 .service-card h3 { font-size: 1.02rem; margin-bottom: .4rem; }
 .service-card p { color: var(--muted); font-size: .9rem; }
+.service-card { cursor: pointer; }
+.service-card:hover { border-color: var(--primary-400); }
+.service-more { display: inline-block; margin-top: .65rem; color: var(--primary-700); font-weight: 600; font-size: .82rem; }
 
 /* ---------- Doctors ---------- */
 .doctor-card { text-align: center; }
@@ -323,6 +326,42 @@ table.schedule .doc-cell { display: flex; align-items: center; gap: .7rem; }
   display: flex; align-items: center; gap: .55rem;
 }
 .poli-title:first-of-type { margin-top: .25rem; }
+
+/* ---------- Modal layanan ---------- */
+[hidden] { display: none !important; }
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(17, 35, 20, .55);
+  display: flex; align-items: center; justify-content: center; padding: 1.2rem;
+  z-index: 999;
+}
+.modal-overlay[hidden] { display: none; }
+.modal {
+  background: #fff; border-radius: 18px; width: 100%; max-width: 460px;
+  max-height: 88vh; overflow: auto; padding: 1.8rem 1.6rem 1.6rem;
+  position: relative; box-shadow: var(--shadow-lg);
+}
+.modal-close {
+  position: absolute; top: .8rem; right: .8rem; width: 34px; height: 34px;
+  border-radius: 50%; border: none; background: #f1f5f2; color: var(--ink);
+  font-size: 1rem; cursor: pointer;
+}
+.modal-photo { border-radius: 14px; overflow: hidden; margin-bottom: 1rem; max-height: 260px; }
+.modal-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.modal-icon { font-size: 3.4rem; text-align: center; margin-bottom: .6rem; }
+.modal h3 { font-size: 1.25rem; margin-bottom: .4rem; text-align: center; }
+.modal-desc { color: var(--muted); font-size: .92rem; text-align: center; margin-bottom: 1.1rem; }
+.modal-info {
+  display: flex; gap: .7rem; align-items: flex-start; background: var(--primary-50);
+  border-radius: 12px; padding: .8rem 1rem; margin-bottom: .7rem;
+}
+.mi-label { font-weight: 700; color: var(--primary-800); font-size: .85rem; white-space: nowrap; }
+.mi-value { font-size: .9rem; color: var(--ink); }
+.modal-call {
+  display: flex; align-items: center; justify-content: center; gap: .5rem;
+  background: var(--primary-700); color: #fff; text-decoration: none;
+  border-radius: 12px; padding: .8rem 1rem; font-weight: 700; font-size: .95rem;
+}
+.modal-call:hover { background: var(--primary-800); }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 1020px) {
