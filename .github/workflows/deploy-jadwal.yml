@@ -80,8 +80,9 @@ jobs:
             echo "::error::secret NETLIFY_AUTH_TOKEN belum diisi."
             exit 1
           fi
-          npm install -g netlify-cli --silent
-          netlify deploy --prod --dir dist --message "Auto (GitHub Actions): jadwal dokter"
+          # npx dipakai supaya tidak bergantung pada izin npm global di runner
+          npx --yes netlify-cli@latest deploy --prod --dir dist \
+            --message "Auto (GitHub Actions): jadwal dokter"
 
       - name: Simpan sidik jari & dokter.html
         if: steps.cek.outputs.berubah == '1'
