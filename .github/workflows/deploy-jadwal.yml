@@ -5,6 +5,8 @@ name: Auto-update jadwal dokter
 on:
   schedule:
     - cron: "*/10 * * * *"   # UTC; GitHub memakai UTC, jadi tiap 10 menit
+  push:
+    branches: [main]         # setiap push ke main -> langsung cek & deploy
   workflow_dispatch:          # bisa dijalankan manual dari tab Actions
 
 permissions:
@@ -92,7 +94,7 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .jadwal-terakhir dokter.html
-          git commit -m "chore(auto): perbarui jadwal dokter $(date -u +%Y-%m-%dT%H:%MZ)" || echo "tidak ada yang berubah untuk di-commit"
+          git commit -m "chore(auto): perbarui jadwal dokter $(date -u +%Y-%m-%dT%H:%MZ) [skip ci]" || echo "tidak ada yang berubah untuk di-commit"
           git push
 
       - name: Ringkasan
