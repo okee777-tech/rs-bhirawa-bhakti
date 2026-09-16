@@ -47,6 +47,15 @@ jobs:
             *) echo "POLA_URL=lain" >> "$GITHUB_ENV" ;;
           esac
 
+          # URL "Publish to web" berformat HTML (pubhtml) -> ubah jadi CSV (pub?output=csv),
+          # supaya variable yang masih menyimpan link "Web page" tetap menghasilkan CSV.
+          case "$SHEET_CSV_URL" in
+            *pubhtml*)
+              SHEET_CSV_URL="${SHEET_CSV_URL%pubhtml*}pub?output=csv"
+              echo "SHEET_CSV_URL=$SHEET_CSV_URL" >> "$GITHUB_ENV"
+              ;;
+          esac
+
           KODE=$(curl -sSL --max-time 60 -o /tmp/jadwal.csv -w "%{http_code}" "$SHEET_CSV_URL" || echo "000")
           TIPE=$(curl -sSLI --max-time 30 "$SHEET_CSV_URL" | tr -d '\r' | awk 'tolower($1)=="content-type:"{print $2; exit}')
           echo "KODE_HTTP=$KODE" >> "$GITHUB_ENV"
