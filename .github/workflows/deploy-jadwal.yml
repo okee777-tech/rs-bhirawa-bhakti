@@ -57,11 +57,15 @@ jobs:
           esac
 
           # Unduh dengan coba-ulang: unduhan pertama ke Google dari IP baru kadang
-          # masih HTML "loading" sampai CSV-nya siap. Tunggu hingga ~60 detik.
+          # masih HTML "loading" sampai CSV-nya siap (bisa ~60 detik). Sabar hingga ~100 detik.
           KODE="000"
-          for i in 1 2 3 4 5 6; do
+          JUMLAH_COBA=0
+          BARIS_PERTAMA=""
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            JUMLAH_COBA=$i
             KODE=$(curl -sSL --max-time 60 -o /tmp/jadwal.csv -w "%{http_code}" "$SHEET_CSV_URL" || echo "000")
-            if head -1 /tmp/jadwal.csv 2>/dev/null | grep -qi "poli"; then
+            BARIS_PERTAMA=$(head -1 /tmp/jadwal.csv 2>/dev/null || true)
+            if printf '%s' "$BARIS_PERTAMA" | grep -qi "poli"; then
               break
             fi
             sleep 10
@@ -69,8 +73,10 @@ jobs:
           TIPE=$(curl -sSLI --max-time 30 "$SHEET_CSV_URL" | tr -d '\r' | awk 'tolower($1)=="content-type:"{print $2; exit}')
           echo "KODE_HTTP=$KODE" >> "$GITHUB_ENV"
           echo "TIPE_ISI=${TIPE:-tidak-ada}" >> "$GITHUB_ENV"
+          echo "JUMLAH_COBA=$JUMLAH_COBA" >> "$GITHUB_ENV"
+          echo "AWAL_UNDUHAN=$(printf '%s' "$BARIS_PERTAMA" | head -c 60 | tr -d '\n\r' | tr -d '<>')" >> "$GITHUB_ENV"
 
-          if head -1 /tmp/jadwal.csv 2>/dev/null | grep -qi "poli"; then
+          if printf '%s' "$BARIS_PERTAMA" | grep -qi "poli"; then
             echo "BERKOLOM_POLI=ya" >> "$GITHUB_ENV"
           else
             echo "BERKOLOM_POLI=tidak" >> "$GITHUB_ENV"
@@ -152,6 +158,8 @@ jobs:
             echo "panjang_url: ${PANJANG_URL:-0}"
             echo "pola_url: ${POLA_URL:-tidak diperiksa}"
             echo "berkolom_poli: ${BERKOLOM_POLI:-tidak}"
+            echo "jumlah_coba: ${JUMLAH_COBA:-0}"
+            echo "awal_unduhan: ${AWAL_UNDUHAN:-tidak-ada}"
             # Ukur ulang di sini supaya angkanya pasti terekam (tidak mengandalkan GITHUB_ENV).
             if [ -n "${SHEET_CSV_URL:-}" ]; then
               echo "kode_http: $(curl -sSL -o /tmp/cek.csv -w '%{http_code}' --max-time 30 "$SHEET_CSV_URL" || echo gagal)"
