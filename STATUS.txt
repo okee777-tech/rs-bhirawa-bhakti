@@ -1,8 +1,10 @@
-waktu_utc: 2026-09-16T14:54:21Z
+waktu_utc: 2026-09-16T14:59:39Z
 alasan_awal: tidak-kosong
 panjang_url: 135
 pola_url: google
 berkolom_poli: tidak
+jumlah_coba: 0
+awal_unduhan: tidak-ada
 kode_http: 200
 content_type: application/binary
 ukuran_isi: 4198 byte
