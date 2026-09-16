@@ -1,0 +1,8 @@
+waktu_utc: 2026-09-16T14:28:15Z
+alasan_awal: tidak-kosong
+panjang_url: 135
+pola_url: google
+kode_http: tidak diukur
+tipe_isi: tidak diukur
+berkolom_poli: tidak
+token_netlify_ada: tidak
