@@ -70,7 +70,7 @@ jobs:
             fi
             sleep 10
           done
-          TIPE=$(curl -sSLI --max-time 30 "$SHEET_CSV_URL" | tr -d '\r' | awk 'tolower($1)=="content-type:"{print $2; exit}')
+          TIPE=$(curl -sSL -o /dev/null -w '%{content_type}' --max-time 30 "$SHEET_CSV_URL" || true)
           echo "KODE_HTTP=$KODE" >> "$GITHUB_ENV"
           echo "TIPE_ISI=${TIPE:-tidak-ada}" >> "$GITHUB_ENV"
           echo "JUMLAH_COBA=$JUMLAH_COBA" >> "$GITHUB_ENV"
@@ -163,7 +163,7 @@ jobs:
             # Ukur ulang di sini supaya angkanya pasti terekam (tidak mengandalkan GITHUB_ENV).
             if [ -n "${SHEET_CSV_URL:-}" ]; then
               echo "kode_http: $(curl -sSL -o /tmp/cek.csv -w '%{http_code}' --max-time 30 "$SHEET_CSV_URL" || echo gagal)"
-              echo "content_type: $(curl -sSLI --max-time 20 "$SHEET_CSV_URL" | tr -d '\r' | awk 'tolower($1)=="content-type:"{print $2; exit}')"
+              echo "content_type: $(curl -sSL -o /dev/null -w '%{content_type}' --max-time 20 "$SHEET_CSV_URL" || echo gagal)"
               echo "ukuran_isi: $(wc -c < /tmp/cek.csv 2>/dev/null || echo 0) byte"
               echo "awal_isi: $(head -c 40 /tmp/cek.csv 2>/dev/null | tr -d '\n\r' | tr -d '<>')"
               echo "ada_d_e: $(case "$SHEET_CSV_URL" in *"/d/e/"*) echo ya;; *) echo tidak;; esac)"
