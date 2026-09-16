@@ -75,3 +75,29 @@ function checkAndDeploy() {
   });
   Logger.log('GitHub API: ' + resp.getResponseCode() + ' ' + resp.getContentText());
 }
+
+/** Buat tab "Layanan" + judul kolom + contoh isian (jalankan sekali). */
+function setupLayanan() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Layanan');
+  if (!sheet) sheet = ss.insertSheet('Layanan');
+
+  const headers = ['Layanan', 'Ikon', 'Deskripsi', 'Foto', 'Telepon', 'Jadwal'];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+
+  const contoh = [
+    ['Poli Umum', '🩺', 'Pemeriksaan dan pengobatan penyakit umum oleh dokter umum.', '', '0896-7171-3279', 'Senin – Sabtu, 08.00 – 20.00'],
+    ['Poli Gigi & Mulut', '🦷', 'Perawatan gigi, tambal, cabut, dan pembersihan karang gigi.', '', '0896-7171-3279', 'Senin – Sabtu, 08.00 – 20.00'],
+    ['Poli Anak', '👶', 'Layanan kesehatan bayi dan anak oleh dokter spesialis anak.', '', '0896-7171-3279', 'Senin – Sabtu, 08.00 – 20.00'],
+    ['Poli Kandungan', '🤰', 'Pemeriksaan kehamilan dan kesehatan reproduksi wanita.', '', '0896-7171-3279', 'Senin – Sabtu, 08.00 – 20.00'],
+    ['IGD 24 Jam', '🚑', 'Layanan gawat darurat siap siaga sepanjang waktu.', '', '0813-5715-8896', '24 Jam'],
+    ['Rawat Inap', '🛏️', 'Kamar perawatan yang nyaman untuk pemulihan pasien.', '', '0896-7171-3279', '24 Jam'],
+    ['Laboratorium', '🔬', 'Pemeriksaan laboratorium lengkap dan akurat.', '', '0896-7171-3279', 'Senin – Sabtu, 07.00 – 15.00'],
+    ['Farmasi', '💊', 'Penyediaan obat dan konsultasi penggunaan obat.', '', '0896-7171-3279', '24 Jam']
+  ];
+  if (sheet.getLastRow() < 2) {
+    sheet.getRange(2, 1, contoh.length, headers.length).setValues(contoh);
+  }
+
+  Logger.log('OK: tab "Layanan" siap. Isi kolom Foto & Telepon aslinya, lalu publish tab ini ke web.');
+}
