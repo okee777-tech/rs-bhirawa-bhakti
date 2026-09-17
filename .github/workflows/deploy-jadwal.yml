@@ -25,10 +25,10 @@ jobs:
       # URL CSV publik hasil "Publish to web" dari Google Sheet.
       # Boleh diisi sebagai Repository variable (Settings -> Secrets and variables -> Actions
       # -> Variables) ATAU sebagai secret. Keduanya didukung.
-      SHEET_CSV_URL: ${{ vars.SHEET_CSV_URL != '' && vars.SHEET_CSV_URL || secrets.SHEET_CSV_URL }}
-      LAYANAN_CSV_URL: ${{ vars.LAYANAN_CSV_URL != '' && vars.LAYANAN_CSV_URL || secrets.LAYANAN_CSV_URL }}
-      GALERI_CSV_URL: ${{ vars.GALERI_CSV_URL != '' && vars.GALERI_CSV_URL || secrets.GALERI_CSV_URL }}
-      BERITA_CSV_URL: ${{ vars.BERITA_CSV_URL != '' && vars.BERITA_CSV_URL || secrets.BERITA_CSV_URL }}
+      SHEET_CSV_URL: ${{ vars.SHEET_CSV_URL != '' && vars.SHEET_CSV_URL || secrets.SHEET_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFcDklj6y4iynfYzuC8DzU1zN1jmrlgbr9qhGhAlk3XmmAZvC4ZcmUAFqPf7BL_Fbp1bEd8N6q_G7B/pub?output=csv&gid=137510541' }}
+      LAYANAN_CSV_URL: ${{ vars.LAYANAN_CSV_URL != '' && vars.LAYANAN_CSV_URL || secrets.LAYANAN_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFcDklj6y4iynfYzuC8DzU1zN1jmrlgbr9qhGhAlk3XmmAZvC4ZcmUAFqPf7BL_Fbp1bEd8N6q_G7B/pub?output=csv&gid=1621418019' }}
+      GALERI_CSV_URL: ${{ vars.GALERI_CSV_URL != '' && vars.GALERI_CSV_URL || secrets.GALERI_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFcDklj6y4iynfYzuC8DzU1zN1jmrlgbr9qhGhAlk3XmmAZvC4ZcmUAFqPf7BL_Fbp1bEd8N6q_G7B/pub?output=csv&gid=710468756' }}
+      BERITA_CSV_URL: ${{ vars.BERITA_CSV_URL != '' && vars.BERITA_CSV_URL || secrets.BERITA_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFcDklj6y4iynfYzuC8DzU1zN1jmrlgbr9qhGhAlk3XmmAZvC4ZcmUAFqPf7BL_Fbp1bEd8N6q_G7B/pub?output=csv&gid=1271807554' }}
 
     steps:
       - name: Ambil repo
