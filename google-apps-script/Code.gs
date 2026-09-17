@@ -101,3 +101,48 @@ function setupLayanan() {
 
   Logger.log('OK: tab "Layanan" siap. Isi kolom Foto & Telepon aslinya, lalu publish tab ini ke web.');
 }
+
+/** Buat tab "Galeri" + judul kolom + contoh isian (jalankan sekali). */
+function setupGaleri() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Galeri');
+  if (!sheet) sheet = ss.insertSheet('Galeri');
+
+  const headers = ['Judul', 'Kategori', 'Foto', 'Tanggal', 'Deskripsi'];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+
+  const contoh = [
+    ['Ruang Rawat Inap', 'Fasilitas', '', '17/09/2026', 'Kamar perawatan yang nyaman untuk pemulihan pasien.'],
+    ['Kegiatan Donor Darah', 'Kegiatan', '', '17/09/2026', 'Kegiatan donor darah rutin RS Bhirawa Bhakti.'],
+    ['Peralatan Laboratorium', 'Fasilitas', '', '17/09/2026', 'Peralatan laboratorium modern dan akurat.']
+  ];
+  if (sheet.getLastRow() < 2) {
+    sheet.getRange(2, 1, contoh.length, headers.length).setValues(contoh);
+  }
+
+  Logger.log('OK: tab "Galeri" siap. Isi kolom Foto (link Google Drive), lalu publish tab ini ke web.');
+}
+
+/** Buat tab "Berita" + judul kolom + contoh isian (jalankan sekali). */
+function setupBerita() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Berita');
+  if (!sheet) sheet = ss.insertSheet('Berita');
+
+  const headers = ['Judul', 'Tanggal', 'Kategori', 'Foto', 'Ringkasan', 'Isi'];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+
+  const contoh = [
+    ['Pemeriksaan Kesehatan Gratis', '17/09/2026', 'Kegiatan', '',
+     'Pemeriksaan kesehatan gratis untuk masyarakat umum.',
+     'Pemeriksaan kesehatan gratis akan dilaksanakan di RS Bhirawa Bhakti.\nSyarat: membawa KTP dan kartu keluarga.'],
+    ['Penambahan Jam Layanan Poli Anak', '17/09/2026', 'Pengumuman', '',
+     'Poli Anak menambah jam layanan mulai bulan ini.',
+     'Mulai bulan ini Poli Anak melayani pasien dengan jam lebih panjang.']
+  ];
+  if (sheet.getLastRow() < 2) {
+    sheet.getRange(2, 1, contoh.length, headers.length).setValues(contoh);
+  }
+
+  Logger.log('OK: tab "Berita" siap. Isi konten aslinya, lalu publish tab ini ke web.');
+}

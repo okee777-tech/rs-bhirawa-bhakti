@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kontak — RS Bhirawa Bhakti</title>
-  <meta name="description" content="Hubungi RS Bhirawa Bhakti — alamat, telepon, email, dan peta lokasi di Jl. Panglima Sudirman D-9A, Malang." />
+  <title>Galeri — RS Bhirawa Bhakti</title>
+  <meta name="description" content="Galeri foto fasilitas dan kegiatan RS Bhirawa Bhakti Malang." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -40,11 +40,11 @@
         <a href="index.html">Beranda</a>
         <a href="index.html#layanan">Layanan</a>
         <a href="dokter.html">Dokter</a>
-        <a href="galeri.html">Galeri</a>
+        <a href="galeri.html" class="active">Galeri</a>
         <a href="berita.html">Berita</a>
         <a href="index.html#artikel">Artikel</a>
         <a href="komplain.html">Komplain</a>
-        <a href="kontak.html" class="active">Kontak</a>
+        <a href="kontak.html">Kontak</a>
         <a href="tel:089671713279" class="nav-phone">📞 Hubungi Kami</a>
       </nav>
       <div class="lang-switch"><span class="lang active">ID</span><span class="lang" title="Segera">EN</span></div>
@@ -54,44 +54,19 @@
 
   <section class="page-hero">
     <div class="container">
-      <div class="breadcrumb"><a href="index.html">Beranda</a> / Kontak</div>
-      <h1>Hubungi Kami</h1>
-      <p>Kami siap membantu kebutuhan informasi layanan kesehatan Anda.</p>
+      <div class="breadcrumb"><a href="index.html">Beranda</a> / Galeri</div>
+      <h1>Galeri</h1>
+      <p>Dokumentasi fasilitas dan kegiatan RS Bhirawa Bhakti.</p>
     </div>
   </section>
 
   <section class="section">
     <div class="container">
-      <div class="contact-cards">
-        <div class="card contact-card">
-          <div class="icon">📍</div>
-          <h3>Alamat</h3>
-          <p>Jl. Panglima Sudirman D-9A, Malang, Jawa Timur</p>
-          <a href="https://maps.google.com/?q=-7.975871838139282,112.63889757441599" target="_blank" rel="noopener">Buka di Google Maps →</a>
-        </div>
-        <div class="card contact-card">
-          <div class="icon">📞</div>
-          <h3>Telepon</h3>
-          <p>Telepon Utama: <a href="tel:089671713279">0896-7171-3279</a></p>
-          <p>UGD 24 Jam: <a href="tel:081357158896">0813-5715-8896</a></p>
-          <p>Komplain (WA): <a href="https://wa.me/6289671713279" target="_blank" rel="noopener">0896-7171-3279</a></p>
-        </div>
-        <div class="card contact-card">
-          <div class="icon">✉️</div>
-          <h3>Email &amp; Sosial Media</h3>
-          <p><a href="mailto:rsbhirawabhakti@gmail.com">rsbhirawabhakti@gmail.com</a></p>
-          <p><a href="https://www.instagram.com/rs_bhirawa_bhakti/" target="_blank" rel="noopener">Instagram @rs_bhirawa_bhakti</a></p>
-          <p><a href="https://www.facebook.com/share/18qV29v5Db/?mibextid=wwXIfr" target="_blank" rel="noopener">Facebook</a></p>
-        </div>
-      </div>
+      <div class="note-placeholder">ℹ️ Galeri bersumber dari Google Sheet. Tambahkan baris baru di tab <b>Galeri</b> (judul + link foto Google Drive) untuk menampilkan foto di sini.</div>
 
-      <div class="map-wrap">
-        <iframe
-          src="https://maps.google.com/maps?q=-7.975871838139282,112.63889757441599&z=16&output=embed"
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade"
-          title="Lokasi RS Bhirawa Bhakti"></iframe>
-      </div>
+      <!-- GALERI:MULAI -->
+<div class="note-placeholder">📸 Belum ada foto. Isi tab <b>Galeri</b> di Google Sheet, lalu foto akan muncul otomatis di sini.</div>
+      <!-- GALERI:SELESAI -->
     </div>
   </section>
 
@@ -124,11 +99,11 @@
         </div>
         <div>
           <h4>Layanan</h4>
-          <a href="#">Poli Umum</a>
-          <a href="#">Poli Gigi &amp; Mulut</a>
-          <a href="#">Poli Anak</a>
-          <a href="#">Rawat Inap</a>
-          <a href="#">IGD 24 Jam</a>
+          <a href="index.html#layanan">Poli Umum</a>
+          <a href="index.html#layanan">Poli Gigi &amp; Mulut</a>
+          <a href="index.html#layanan">Poli Anak</a>
+          <a href="index.html#layanan">Rawat Inap</a>
+          <a href="index.html#layanan">IGD 24 Jam</a>
         </div>
         <div>
           <h4>Hubungi Kami</h4>
@@ -146,6 +121,19 @@
       </div>
     </div>
   </footer>
+
+  <!-- Lightbox galeri (diisi JS dari window.GALERI_DATA) -->
+  <div class="modal-overlay" id="galeriModal" hidden>
+    <div class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="gNama">
+      <button class="modal-close" id="galeriModalClose" aria-label="Tutup">✕</button>
+      <div class="modal-photo" id="gFoto" hidden></div>
+      <h3 id="gNama"></h3>
+      <div class="modal-info" id="gMeta" hidden>
+        <span class="mi-value" id="gMetaVal"></span>
+      </div>
+      <p class="modal-desc" id="gDeskripsi"></p>
+    </div>
+  </div>
 
   <script src="assets/main.js"></script>
 </body>

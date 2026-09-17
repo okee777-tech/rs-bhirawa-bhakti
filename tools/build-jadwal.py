@@ -22,6 +22,10 @@ CSV = ROOT / "data" / "jadwal-dokter.csv"
 HTML = ROOT / "dokter.html"
 INDEX = ROOT / "index.html"
 LAYANAN_CSV = ROOT / "data" / "layanan.csv"
+GALERI_CSV = ROOT / "data" / "galeri.csv"
+BERITA_CSV = ROOT / "data" / "berita.csv"
+GALERI_HTML = ROOT / "galeri.html"
+BERITA_HTML = ROOT / "berita.html"
 
 MARK_MULAI = "<!-- JADWAL:MULAI -->"
 MARK_SELESAI = "<!-- JADWAL:SELESAI -->"
@@ -29,6 +33,10 @@ IDX_MULAI = "<!-- DOKTER:MULAI -->"
 IDX_SELESAI = "<!-- DOKTER:SELESAI -->"
 LAY_MULAI = "<!-- LAYANAN:MULAI -->"
 LAY_SELESAI = "<!-- LAYANAN:SELESAI -->"
+GAL_MULAI = "<!-- GALERI:MULAI -->"
+GAL_SELESAI = "<!-- GALERI:SELESAI -->"
+BER_MULAI = "<!-- BERITA:MULAI -->"
+BER_SELESAI = "<!-- BERITA:SELESAI -->"
 
 HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
 HARI_IDX = {h: i for i, h in enumerate(HARI)}
@@ -307,6 +315,103 @@ def build_layanan():
     return grid + "\n" + script
 
 
+def build_galeri():
+    """Grid foto galeri + data lightbox (dari data/galeri.csv)."""
+    if not GALERI_CSV.exists():
+        return None
+    with GALERI_CSV.open(newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    rows = [r for r in rows if (r.get("judul") or "").strip()]
+    if not rows:
+        return None
+
+    items, data = [], []
+    for i, r in enumerate(rows):
+        judul = (r.get("judul") or "").strip()
+        kategori = (r.get("kategori") or "").strip()
+        deskripsi = (r.get("deskripsi") or "").strip()
+        tanggal = (r.get("tanggal") or "").strip()
+        foto = foto_url(r.get("foto", ""), size="w800")
+
+        if foto:
+            thumb = (f'<div class="gallery-thumb">'
+                     f'<img src="{html.escape(foto)}" alt="{html.escape(judul)}" loading="lazy"></div>')
+        else:
+            thumb = '<div class="gallery-thumb">🖼️</div>'
+        cat = (f'<span class="gallery-cat">{html.escape(kategori)}</span>'
+               if kategori else "")
+        items.append(
+            f'<div class="card gallery-item" data-galeri="{i}" role="button" tabindex="0">\n'
+            f'  {thumb}\n'
+            f'  <div class="gallery-cap">\n'
+            f'    <h3>{html.escape(judul)}</h3>\n'
+            f'    {cat}\n'
+            f'  </div>\n'
+            f'</div>'
+        )
+        data.append({
+            "judul": judul, "kategori": kategori, "deskripsi": deskripsi,
+            "tanggal": tanggal, "foto": foto,
+        })
+
+    grid = '<div class="gallery-grid">\n' + "\n".join(items) + '\n</div>'
+    script = ('<script>window.GALERI_DATA = '
+              + json.dumps(data, ensure_ascii=False)
+              + ';</script>')
+    return grid + "\n" + script
+
+
+def build_berita():
+    """Daftar berita + data modal (dari data/berita.csv)."""
+    if not BERITA_CSV.exists():
+        return None
+    with BERITA_CSV.open(newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    rows = [r for r in rows if (r.get("judul") or "").strip()]
+    if not rows:
+        return None
+
+    items, data = [], []
+    for i, r in enumerate(rows):
+        judul = (r.get("judul") or "").strip()
+        tanggal = (r.get("tanggal") or "").strip()
+        kategori = (r.get("kategori") or "").strip()
+        ringkasan = (r.get("ringkasan") or "").strip()
+        isi = (r.get("isi") or "").strip()
+        foto = foto_url(r.get("foto", ""), size="w800")
+
+        if foto:
+            thumb = (f'<div class="news-thumb">'
+                     f'<img src="{html.escape(foto)}" alt="{html.escape(judul)}" loading="lazy"></div>')
+        else:
+            thumb = '<div class="news-thumb">📰</div>'
+        meta_parts = [p for p in (kategori, tanggal) if p]
+        meta = (f'<span class="meta">{html.escape(" · ".join(meta_parts))}</span>'
+                if meta_parts else "")
+        ringkas = f'<p>{html.escape(ringkasan)}</p>' if ringkasan else ""
+        items.append(
+            f'<div class="card news-card" data-berita="{i}" role="button" tabindex="0">\n'
+            f'  {thumb}\n'
+            f'  <div class="news-body">\n'
+            f'    {meta}\n'
+            f'    <h3>{html.escape(judul)}</h3>\n'
+            f'    {ringkas}\n'
+            f'    <span class="more">Baca selengkapnya →</span>\n'
+            f'  </div>\n'
+            f'</div>'
+        )
+        data.append({
+            "judul": judul, "tanggal": tanggal, "kategori": kategori,
+            "ringkasan": ringkasan, "isi": isi, "foto": foto,
+        })
+
+    lst = '<div class="news-list">\n' + "\n".join(items) + '\n</div>'
+    script = ('<script>window.BERITA_DATA = '
+              + json.dumps(data, ensure_ascii=False)
+              + ';</script>')
+    return lst + "\n" + script
+
+
 def main():
     if not CSV.exists():
         raise SystemExit(f"FAIL: {CSV} belum ada. Jalankan tools/extract-jadwal.py dulu.")
@@ -364,6 +469,40 @@ def main():
                 print("⚠️ data/layanan.csv kosong/tidak ada — kartu layanan dibiarkan apa adanya.")
         else:
             print(f"⚠️ penanda {LAY_MULAI}/{LAY_SELESAI} tidak ada di index.html.")
+
+    # --- Galeri ---
+    if GALERI_HTML.exists():
+        ghtml = GALERI_HTML.read_text(encoding="utf-8")
+        if GAL_MULAI in ghtml and GAL_SELESAI in ghtml:
+            gal = build_galeri()
+            if gal:
+                g1 = ghtml.index(GAL_MULAI) + len(GAL_MULAI)
+                g2 = ghtml.index(GAL_SELESAI)
+                ghtml = ghtml[:g1] + "\n" + gal + "\n      " + ghtml[g2:]
+                GALERI_HTML.write_text(ghtml, encoding="utf-8")
+                n_gal = gal.count('class="card gallery-item"')
+                print(f"✅ galeri.html: {n_gal} foto ditulis.")
+            else:
+                print("⚠️ data/galeri.csv kosong/tidak ada — galeri dibiarkan apa adanya.")
+        else:
+            print(f"⚠️ penanda {GAL_MULAI}/{GAL_SELESAI} tidak ada di galeri.html.")
+
+    # --- Berita ---
+    if BERITA_HTML.exists():
+        bhtml = BERITA_HTML.read_text(encoding="utf-8")
+        if BER_MULAI in bhtml and BER_SELESAI in bhtml:
+            ber = build_berita()
+            if ber:
+                b1 = bhtml.index(BER_MULAI) + len(BER_MULAI)
+                b2 = bhtml.index(BER_SELESAI)
+                bhtml = bhtml[:b1] + "\n" + ber + "\n      " + bhtml[b2:]
+                BERITA_HTML.write_text(bhtml, encoding="utf-8")
+                n_ber = ber.count('class="card news-card"')
+                print(f"✅ berita.html: {n_ber} berita ditulis.")
+            else:
+                print("⚠️ data/berita.csv kosong/tidak ada — berita dibiarkan apa adanya.")
+        else:
+            print(f"⚠️ penanda {BER_MULAI}/{BER_SELESAI} tidak ada di berita.html.")
 
 
 if __name__ == "__main__":

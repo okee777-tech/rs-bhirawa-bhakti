@@ -112,3 +112,129 @@
     if (e.key === 'Escape' && !overlay.hidden) close();
   });
 })();
+
+// Lightbox galeri + modal berita.
+(function () {
+  // --- Galeri (lightbox) ---
+  var gData = window.GALERI_DATA || [];
+  var gOverlay = document.getElementById('galeriModal');
+  if (gOverlay && gData.length) {
+    var gClose = document.getElementById('galeriModalClose');
+    var gFoto = document.getElementById('gFoto');
+    var gNama = document.getElementById('gNama');
+    var gDesk = document.getElementById('gDeskripsi');
+    var gMeta = document.getElementById('gMeta');
+    var gMetaVal = document.getElementById('gMetaVal');
+
+    function gOpen(i) {
+      var d = gData[i];
+      if (!d) return;
+      gNama.textContent = d.judul || '';
+      gDesk.textContent = d.deskripsi || '';
+      if (d.foto) {
+        var img = document.createElement('img');
+        img.src = d.foto;
+        img.alt = d.judul || '';
+        img.loading = 'lazy';
+        gFoto.innerHTML = '';
+        gFoto.appendChild(img);
+        gFoto.hidden = false;
+      } else {
+        gFoto.hidden = true;
+      }
+      var meta = [];
+      if (d.kategori) meta.push(d.kategori);
+      if (d.tanggal) meta.push(d.tanggal);
+      if (meta.length) {
+        gMetaVal.textContent = meta.join(' · ');
+        gMeta.hidden = false;
+      } else {
+        gMeta.hidden = true;
+      }
+      gOverlay.hidden = false;
+      document.body.style.overflow = 'hidden';
+    }
+    function gCloseFn() {
+      gOverlay.hidden = true;
+      document.body.style.overflow = '';
+    }
+    document.querySelectorAll('.gallery-item[data-galeri]').forEach(function (el) {
+      el.addEventListener('click', function () { gOpen(parseInt(el.getAttribute('data-galeri'), 10)); });
+      el.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          gOpen(parseInt(el.getAttribute('data-galeri'), 10));
+        }
+      });
+    });
+    if (gClose) gClose.addEventListener('click', gCloseFn);
+    gOverlay.addEventListener('click', function (e) { if (e.target === gOverlay) gCloseFn(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !gOverlay.hidden) gCloseFn(); });
+  }
+
+  // --- Berita (modal artikel) ---
+  var bData = window.BERITA_DATA || [];
+  var bOverlay = document.getElementById('beritaModal');
+  if (bOverlay && bData.length) {
+    var bClose = document.getElementById('beritaModalClose');
+    var bFoto = document.getElementById('bFoto');
+    var bMeta = document.getElementById('bMeta');
+    var bMetaVal = document.getElementById('bMetaVal');
+    var bJudul = document.getElementById('bJudul');
+    var bIsi = document.getElementById('bIsi');
+
+    function setMultiline(el, text) {
+      el.innerHTML = '';
+      var lines = (text || '').split('\n');
+      lines.forEach(function (line, i) {
+        if (i > 0) el.appendChild(document.createElement('br'));
+        el.appendChild(document.createTextNode(line));
+      });
+    }
+
+    function bOpen(i) {
+      var d = bData[i];
+      if (!d) return;
+      bJudul.textContent = d.judul || '';
+      setMultiline(bIsi, d.isi || d.ringkasan || '');
+      if (d.foto) {
+        var img = document.createElement('img');
+        img.src = d.foto;
+        img.alt = d.judul || '';
+        img.loading = 'lazy';
+        bFoto.innerHTML = '';
+        bFoto.appendChild(img);
+        bFoto.hidden = false;
+      } else {
+        bFoto.hidden = true;
+      }
+      var meta = [];
+      if (d.kategori) meta.push(d.kategori);
+      if (d.tanggal) meta.push(d.tanggal);
+      if (meta.length) {
+        bMetaVal.textContent = meta.join(' · ');
+        bMeta.hidden = false;
+      } else {
+        bMeta.hidden = true;
+      }
+      bOverlay.hidden = false;
+      document.body.style.overflow = 'hidden';
+    }
+    function bCloseFn() {
+      bOverlay.hidden = true;
+      document.body.style.overflow = '';
+    }
+    document.querySelectorAll('.news-card[data-berita]').forEach(function (el) {
+      el.addEventListener('click', function () { bOpen(parseInt(el.getAttribute('data-berita'), 10)); });
+      el.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          bOpen(parseInt(el.getAttribute('data-berita'), 10));
+        }
+      });
+    });
+    if (bClose) bClose.addEventListener('click', bCloseFn);
+    bOverlay.addEventListener('click', function (e) { if (e.target === bOverlay) bCloseFn(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !bOverlay.hidden) bCloseFn(); });
+  }
+})();

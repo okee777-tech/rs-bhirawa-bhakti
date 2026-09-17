@@ -29,8 +29,12 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 CSV_OUT = DATA / "jadwal-dokter.csv"
 LAYANAN_OUT = DATA / "layanan.csv"
+GALERI_OUT = DATA / "galeri.csv"
+BERITA_OUT = DATA / "berita.csv"
 URL_FILE = DATA / "gsheet-url.txt"
 LAYANAN_URL_FILE = DATA / "layanan-url.txt"
+GALERI_URL_FILE = DATA / "galeri-url.txt"
+BERITA_URL_FILE = DATA / "berita-url.txt"
 BUILD = ROOT / "tools" / "build-jadwal.py"
 
 HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
@@ -59,6 +63,25 @@ COLS_LAYANAN = {
     "foto": ["foto", "gambar", "photo", "linkfoto", "fotolayanan"],
     "telepon": ["telepon", "telp", "notelepon", "nomortelepon", "kontak", "telepone"],
     "jadwal": ["jadwal", "jadwallayanan", "jambuka", "jampelayanan", "jampraktek"],
+}
+
+# kolom tab "Galeri" -> kandidat header
+COLS_GALERI = {
+    "judul": ["judul", "nama", "namafoto", "caption", "title"],
+    "kategori": ["kategori", "album", "jenis", "kategorifoto"],
+    "foto": ["foto", "gambar", "photo", "linkfoto", "link", "url"],
+    "tanggal": ["tanggal", "tgl", "date"],
+    "deskripsi": ["deskripsi", "keterangan", "deskripsifoto"],
+}
+
+# kolom tab "Berita" -> kandidat header
+COLS_BERITA = {
+    "judul": ["judul", "title", "judulberita"],
+    "tanggal": ["tanggal", "tgl", "date", "tanggalberita"],
+    "kategori": ["kategori", "jenis", "kategoriberita"],
+    "foto": ["foto", "gambar", "photo", "linkfoto", "thumbnail"],
+    "ringkasan": ["ringkasan", "summary", "resume", "singkat", "deskripsi"],
+    "isi": ["isi", "konten", "content", "artikel", "isiberita", "teks"],
 }
 
 
@@ -165,6 +188,85 @@ def fetch_layanan(src):
     return True
 
 
+def fetch_galeri(src):
+    """Ambil tab Galeri -> data/galeri.csv. Balikan True kalau berhasil."""
+    text = read_source(src)
+    rows = list(csv.DictReader(text.splitlines()))
+    if not rows:
+        print("⚠️  Galeri: CSV kosong / header tidak terbaca (dilewati).")
+        return False
+    cols = find_cols(rows[0].keys(), COLS_GALERI)
+    if "judul" not in cols:
+        print(f"⚠️  Galeri: kolom 'Judul' tidak ditemukan. Header: {list(rows[0].keys())}")
+        return False
+
+    def g(row, canon):
+        i = cols.get(canon)
+        return "" if i is None else list(row.values())[i]
+
+    out = []
+    for row in rows:
+        judul = g(row, "judul").strip()
+        if not judul:
+            continue
+        out.append({
+            "judul": judul,
+            "kategori": g(row, "kategori").strip(),
+            "foto": g(row, "foto").strip(),
+            "tanggal": g(row, "tanggal").strip(),
+            "deskripsi": g(row, "deskripsi").strip(),
+        })
+
+    GALERI_OUT.parent.mkdir(parents=True, exist_ok=True)
+    fields = ["judul", "kategori", "foto", "tanggal", "deskripsi"]
+    with GALERI_OUT.open("w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=fields)
+        w.writeheader()
+        w.writerows(out)
+    print(f"✅ {len(out)} galeri -> {GALERI_OUT.name}")
+    return True
+
+
+def fetch_berita(src):
+    """Ambil tab Berita -> data/berita.csv. Balikan True kalau berhasil."""
+    text = read_source(src)
+    rows = list(csv.DictReader(text.splitlines()))
+    if not rows:
+        print("⚠️  Berita: CSV kosong / header tidak terbaca (dilewati).")
+        return False
+    cols = find_cols(rows[0].keys(), COLS_BERITA)
+    if "judul" not in cols:
+        print(f"⚠️  Berita: kolom 'Judul' tidak ditemukan. Header: {list(rows[0].keys())}")
+        return False
+
+    def g(row, canon):
+        i = cols.get(canon)
+        return "" if i is None else list(row.values())[i]
+
+    out = []
+    for row in rows:
+        judul = g(row, "judul").strip()
+        if not judul:
+            continue
+        out.append({
+            "judul": judul,
+            "tanggal": g(row, "tanggal").strip(),
+            "kategori": g(row, "kategori").strip(),
+            "foto": g(row, "foto").strip(),
+            "ringkasan": g(row, "ringkasan").strip(),
+            "isi": g(row, "isi").strip(),
+        })
+
+    BERITA_OUT.parent.mkdir(parents=True, exist_ok=True)
+    fields = ["judul", "tanggal", "kategori", "foto", "ringkasan", "isi"]
+    with BERITA_OUT.open("w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=fields)
+        w.writeheader()
+        w.writerows(out)
+    print(f"✅ {len(out)} berita -> {BERITA_OUT.name}")
+    return True
+
+
 def main():
     if len(sys.argv) > 1:
         src = sys.argv[1].strip()
@@ -251,7 +353,35 @@ def main():
         LAYANAN_URL_FILE.write_text(layanan_src + "\n", encoding="utf-8")
         fetch_layanan(layanan_src)
 
-    # bangun ulang dokter.html + kartu layanan di index.html
+    # --- tab Galeri (opsional) ---
+    galeri_src = None
+    if len(sys.argv) > 3:
+        galeri_src = sys.argv[3].strip()
+    elif os.environ.get("GALERI_CSV_URL"):
+        galeri_src = os.environ["GALERI_CSV_URL"].strip()
+    elif GALERI_URL_FILE.exists():
+        galeri_src = GALERI_URL_FILE.read_text(encoding="utf-8").strip().splitlines()[0]
+
+    if galeri_src and galeri_src.startswith("http"):
+        DATA.mkdir(parents=True, exist_ok=True)
+        GALERI_URL_FILE.write_text(galeri_src + "\n", encoding="utf-8")
+        fetch_galeri(galeri_src)
+
+    # --- tab Berita (opsional) ---
+    berita_src = None
+    if len(sys.argv) > 4:
+        berita_src = sys.argv[4].strip()
+    elif os.environ.get("BERITA_CSV_URL"):
+        berita_src = os.environ["BERITA_CSV_URL"].strip()
+    elif BERITA_URL_FILE.exists():
+        berita_src = BERITA_URL_FILE.read_text(encoding="utf-8").strip().splitlines()[0]
+
+    if berita_src and berita_src.startswith("http"):
+        DATA.mkdir(parents=True, exist_ok=True)
+        BERITA_URL_FILE.write_text(berita_src + "\n", encoding="utf-8")
+        fetch_berita(berita_src)
+
+    # bangun ulang dokter.html + kartu layanan + galeri + berita
     subprocess.run([sys.executable, str(BUILD)], check=True)
 
 

@@ -112,7 +112,7 @@ def csv_text_to_rows(text, h):
     rows = list(csv.DictReader(text.splitlines()))
     if not rows:
         raise SystemExit("FAIL: CSV kosong / header tidak terbaca.")
-    idx = h.find_cols(rows[0].keys())
+    idx = h.find_cols(list(rows[0].keys()), h.COLS)
     missing = [c for c in ("poli", "dokter", "hari", "jam_mulai", "jam_selesai") if c not in idx]
     if missing:
         raise SystemExit(f"FAIL: kolom tidak ditemukan: {missing}. "

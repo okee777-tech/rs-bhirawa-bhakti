@@ -388,3 +388,44 @@ table.schedule .doc-cell { display: flex; align-items: center; gap: .7rem; }
   .cta-band { padding: 2rem 1.4rem; }
   .topbar .tb-right { display: none; }
 }
+
+/* ---------- Galeri ---------- */
+.gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem; }
+.gallery-item { padding: 0; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; }
+.gallery-thumb {
+  height: 210px; background: linear-gradient(135deg, var(--primary-700), var(--primary-600));
+  display: grid; place-items: center; color: #fff; font-size: 2.4rem; overflow: hidden;
+}
+.gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.gallery-cap { padding: 1rem 1.15rem 1.15rem; }
+.gallery-cap h3 { font-size: 1rem; margin-bottom: .2rem; }
+.gallery-cap .gallery-cat { font-size: .78rem; color: var(--primary-700); font-weight: 600; }
+
+/* ---------- Berita ---------- */
+.news-list { display: flex; flex-direction: column; gap: 1.2rem; }
+.news-card { padding: 0; overflow: hidden; cursor: pointer; display: flex; align-items: stretch; }
+.news-thumb {
+  flex: 0 0 220px; min-height: 150px; background: linear-gradient(135deg, var(--primary-700), var(--primary-600));
+  display: grid; place-items: center; color: #fff; font-size: 2.4rem; overflow: hidden;
+}
+.news-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.news-body { padding: 1.2rem 1.4rem; display: flex; flex-direction: column; gap: .45rem; flex: 1; }
+.news-body .meta { font-size: .78rem; color: var(--muted); }
+.news-body h3 { font-size: 1.08rem; line-height: 1.4; }
+.news-body p { color: var(--muted); font-size: .9rem; }
+.news-body .more { margin-top: auto; color: var(--primary-700); font-weight: 600; font-size: .88rem; }
+
+/* ---------- Modal lebar (galeri & berita) ---------- */
+.modal-wide { max-width: 640px; }
+.modal-wide .modal-photo { max-height: 420px; }
+.modal-article { color: var(--ink); font-size: .95rem; text-align: left; line-height: 1.75; }
+
+/* ---------- Responsive galeri & berita ---------- */
+@media (max-width: 1020px) {
+  .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+  .news-card { flex-direction: column; }
+  .news-thumb { flex: none; height: 200px; }
+}
+@media (max-width: 760px) {
+  .gallery-grid { grid-template-columns: 1fr; }
+}
