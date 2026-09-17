@@ -1,7 +1,7 @@
 name: Auto-update jadwal dokter
 
 # Cek tiap 10 menit: kalau jadwal di Google Sheet berubah, situs dibangun ulang
-# dan di-deploy ke Netlify — semuanya di server GitHub, tanpa komputer lokal.
+# dan di-deploy ke GitHub Pages — semuanya di server GitHub, tanpa komputer lokal.
 on:
   schedule:
     - cron: "*/10 * * * *"   # UTC; GitHub memakai UTC, jadi tiap 10 menit
@@ -11,6 +11,8 @@ on:
 
 permissions:
   contents: write             # untuk menyimpan sidik jari + dokter.html + STATUS.txt
+  pages: write                # untuk deploy ke GitHub Pages
+  id-token: write             # diperlukan oleh actions/deploy-pages
 
 concurrency:
   group: deploy-jadwal
@@ -25,7 +27,6 @@ jobs:
       # -> Variables) ATAU sebagai secret. Keduanya didukung.
       SHEET_CSV_URL: ${{ vars.SHEET_CSV_URL != '' && vars.SHEET_CSV_URL || secrets.SHEET_CSV_URL }}
       LAYANAN_CSV_URL: ${{ vars.LAYANAN_CSV_URL != '' && vars.LAYANAN_CSV_URL || secrets.LAYANAN_CSV_URL }}
-      NETLIFY_SITE_ID: b80d5197-39b0-4721-9ac1-39f7afdf7d26
 
     steps:
       - name: Ambil repo
@@ -135,20 +136,20 @@ jobs:
           cp assets/style.css assets/main.js assets/logo.png dist/assets/
           du -sh dist
 
-      - name: Deploy ke Netlify
+      - name: Konfigurasi GitHub Pages
         if: steps.cek.outputs.berubah == '1'
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        run: |
-          set -euo pipefail
-          if [ -z "${NETLIFY_AUTH_TOKEN:-}" ]; then
-            echo "SEBAB=token-netlify-kosong" >> "$GITHUB_ENV"
-            echo "::error::secret NETLIFY_AUTH_TOKEN belum diisi."
-            exit 1
-          fi
-          # npx dipakai supaya tidak bergantung pada izin npm global di runner
-          npx --yes netlify-cli@latest deploy --prod --dir dist \
-            --message "Auto (GitHub Actions): jadwal dokter"
+        uses: actions/configure-pages@v5
+
+      - name: Unggah ke GitHub Pages
+        if: steps.cek.outputs.berubah == '1'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Deploy ke GitHub Pages
+        if: steps.cek.outputs.berubah == '1'
+        id: deployment
+        uses: actions/deploy-pages@v4
 
       - name: Simpan sidik jari & dokter.html
         if: steps.cek.outputs.berubah == '1'
