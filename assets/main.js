@@ -238,3 +238,29 @@
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !bOverlay.hidden) bCloseFn(); });
   }
 })();
+
+// Tombol geser (carousel) untuk baris dokter, layanan, dan berita.
+(function () {
+  document.querySelectorAll('.scroll-wrap').forEach(function (wrap) {
+    var scroller = wrap.querySelector('.doctor-scroll, .service-scroll, .news-scroll');
+    if (!scroller) return;
+    var left = wrap.querySelector('.scroll-btn-left');
+    var right = wrap.querySelector('.scroll-btn-right');
+
+    function update() {
+      if (left) left.disabled = scroller.scrollLeft <= 4;
+      if (right) right.disabled = scroller.scrollLeft + scroller.clientWidth >= scroller.scrollWidth - 4;
+    }
+    function step() { return Math.round(scroller.clientWidth * 0.8); }
+
+    if (left) left.addEventListener('click', function () {
+      scroller.scrollBy({ left: -step(), behavior: 'smooth' });
+    });
+    if (right) right.addEventListener('click', function () {
+      scroller.scrollBy({ left: step(), behavior: 'smooth' });
+    });
+    scroller.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  });
+})();

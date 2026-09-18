@@ -93,6 +93,26 @@
     </div>
   </section>
 
+  <!-- Sambutan Kepala RS -->
+  <section class="section section-alt" id="kepala">
+    <div class="container">
+      <div class="kepala-card">
+        <div class="kepala-photo">
+          <!-- Ganti dengan foto Kepala RS. Contoh:
+               <img src="https://drive.google.com/thumbnail?id=ID_FOTO&sz=w800" alt="Foto Kepala RS"> -->
+          👨‍⚕️
+        </div>
+        <div class="kepala-body">
+          <span class="eyebrow">Sambutan</span>
+          <h2>Kepala Rumah Sakit Bhirawa Bhakti</h2>
+          <div class="kepala-nama">dr. Hari Indratno, Sp.JP (K), FIHA</div>
+          <div class="kepala-pangkat">Mayor Ckm · NRP. 11070048530182</div>
+          <p class="kepala-visi">“Menjadi Rumah Sakit Pilihan Utama dan Kebanggaan Prajurit TNI, PNS TNI AD dan Keluarganya serta Masyarakat Kota Malang dan sekitarnya.”</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Services -->
   <section class="section" id="layanan">
     <div class="container">
@@ -102,7 +122,9 @@
         <p>Kami menyediakan layanan kesehatan lengkap untuk kebutuhan Anda dan keluarga.</p>
       </div>
       <!-- LAYANAN:MULAI -->
-<div class="grid grid-4">
+<div class="scroll-wrap">
+  <button type="button" class="scroll-btn scroll-btn-left" aria-label="Geser kiri">‹</button>
+  <div class="service-scroll">
 <div class="card service-card" data-layanan="0" role="button" tabindex="0">
   <div class="icon">🩺</div>
   <h3>Poli Umum</h3>
@@ -163,6 +185,8 @@
   <p>Pendaftaran Pasien</p>
   <span class="service-more">Lihat info &amp; jadwal →</span>
 </div>
+  </div>
+  <button type="button" class="scroll-btn scroll-btn-right" aria-label="Geser kanan">›</button>
 </div>
 <script>window.LAYANAN_DATA = [{"nama": "Poli Umum", "ikon": "🩺", "deskripsi": "Pemeriksaan dan pengobatan penyakit umum oleh dokter umum.", "foto": "", "telepon": "0813‑5715‑889", "jadwal": "Senin – Sabtu, 08.00 – 20.00"}, {"nama": "Poli Gigi & Mulut", "ikon": "🦷", "deskripsi": "Perawatan gigi, tambal, cabut, dan pembersihan karang gigi.", "foto": "", "telepon": "0821-4626-0265", "jadwal": "Senin – Sabtu, 08.00 – 20.00"}, {"nama": "Poli Spesialis", "ikon": "👶", "deskripsi": "Layanan kesehatan bayi dan anak oleh dokter spesialis anak.", "foto": "", "telepon": "0895-3293-55059", "jadwal": "Senin – Sabtu, 08.00 – 20.00"}, {"nama": "Poli Kandungan", "ikon": "🤰", "deskripsi": "Pemeriksaan kehamilan dan kesehatan reproduksi wanita.", "foto": "", "telepon": "0812-4972-8456", "jadwal": "Senin – Sabtu, 08.00 – 20.00"}, {"nama": "IGD 24 Jam", "ikon": "🚑", "deskripsi": "Layanan gawat darurat siap siaga sepanjang waktu.", "foto": "", "telepon": "0813‑5715‑889", "jadwal": "24 Jam"}, {"nama": "Rawat Inap", "ikon": "🛏️", "deskripsi": "Kamar perawatan yang nyaman untuk pemulihan pasien.", "foto": "", "telepon": "0896-7171-3279", "jadwal": "24 Jam"}, {"nama": "Laboratorium", "ikon": "🔬", "deskripsi": "Pemeriksaan laboratorium lengkap dan akurat.", "foto": "", "telepon": "0812-1750-3657", "jadwal": "Senin – Sabtu, 07.00 – 15.00"}, {"nama": "Radiologi", "ikon": "🏥", "deskripsi": "Pemeriksaan Radiologi", "foto": "", "telepon": "0852-5872-7892", "jadwal": "Senin – Sabtu, 07.00 – 15.00"}, {"nama": "Farmasi", "ikon": "💊", "deskripsi": "Penyediaan obat dan konsultasi penggunaan obat.", "foto": "", "telepon": "0821-3211-8827", "jadwal": "24 Jam"}, {"nama": "Pendaftaran", "ikon": "🏥", "deskripsi": "Pendaftaran Pasien", "foto": "", "telepon": "0895-3293-54915", "jadwal": "24 Jam"}];</script>
       <!-- LAYANAN:SELESAI -->
@@ -178,7 +202,9 @@
         <p>Dokter berpengalaman dan berkompeten di bidangnya masing-masing.</p>
       </div>
       <!-- DOKTER:MULAI -->
-<div class="doctor-scroll">
+<div class="scroll-wrap">
+  <button type="button" class="scroll-btn scroll-btn-left" aria-label="Geser kiri">‹</button>
+  <div class="doctor-scroll">
 <div class="card doctor-card">
   <div class="doctor-avatar"><img src="https://drive.google.com/thumbnail?id=1T4OqUbDT-5EgD0_cxNVlL0_0F483kYtg&amp;sz=w400" alt="dr. Meisyarah Khairani, Sp.A" loading="lazy"></div>
   <h3>dr. Meisyarah Khairani, Sp.A</h3>
@@ -281,10 +307,53 @@
   <div class="spec">Gigi Spesialis</div>
   <div class="schedule">Jadwal: <b>Sabtu</b><br />08.00 – 11.00 WIB</div>
 </div>
+  </div>
+  <button type="button" class="scroll-btn scroll-btn-right" aria-label="Geser kanan">›</button>
 </div>
       <!-- DOKTER:SELESAI -->
       <div style="text-align:center; margin-top:2rem;">
         <a href="dokter.html" class="btn btn-primary">Lihat Semua Dokter &amp; Jadwal →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Berita Terbaru -->
+  <section class="section section-alt" id="berita-home">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">Kabar Terbaru</span>
+        <h2>Berita &amp; Informasi</h2>
+        <p>Kegiatan, pengumuman, dan kabar terbaru dari RS Bhirawa Bhakti.</p>
+      </div>
+      <!-- BERITA_HOME:MULAI -->
+<div class="scroll-wrap">
+  <button type="button" class="scroll-btn scroll-btn-left" aria-label="Geser kiri">‹</button>
+  <div class="news-scroll">
+<div class="card news-card" data-berita="0" role="button" tabindex="0">
+  <div class="news-thumb">📰</div>
+  <div class="news-body">
+    <span class="meta">Kegiatan · 17/09/2026</span>
+    <h3>Pemeriksaan Kesehatan Gratis</h3>
+    <p>Pemeriksaan gratis untuk umum.</p>
+    <span class="more">Baca selengkapnya →</span>
+  </div>
+</div>
+<div class="card news-card" data-berita="1" role="button" tabindex="0">
+  <div class="news-thumb">📰</div>
+  <div class="news-body">
+    <span class="meta">Pengumuman · 17/09/2026</span>
+    <h3>Penambahan Jam Layanan Poli Anak</h3>
+    <p>Poli Anak menambah jam layanan.</p>
+    <span class="more">Baca selengkapnya →</span>
+  </div>
+</div>
+  </div>
+  <button type="button" class="scroll-btn scroll-btn-right" aria-label="Geser kanan">›</button>
+</div>
+<script>window.BERITA_DATA = [{"judul": "Pemeriksaan Kesehatan Gratis", "tanggal": "17/09/2026", "kategori": "Kegiatan", "ringkasan": "Pemeriksaan gratis untuk umum.", "isi": "Pemeriksaan gratis di RS Bhirawa Bhakti.Syarat: bawa KTP.", "foto": ""}, {"judul": "Penambahan Jam Layanan Poli Anak", "tanggal": "17/09/2026", "kategori": "Pengumuman", "ringkasan": "Poli Anak menambah jam layanan.", "isi": "Mulai bulan ini Poli Anak melayani lebih lama.", "foto": ""}];</script>
+      <!-- BERITA_HOME:SELESAI -->
+      <div style="text-align:center; margin-top:2rem;">
+        <a href="berita.html" class="btn btn-primary">Lihat Semua Berita →</a>
       </div>
     </div>
   </section>
@@ -410,6 +479,19 @@
       <a class="modal-call" id="mTelepon" href="#" hidden>
         📞 <span id="mTeleponVal"></span>
       </a>
+    </div>
+  </div>
+
+  <!-- Modal berita (diisi JS dari window.BERITA_DATA) -->
+  <div class="modal-overlay" id="beritaModal" hidden>
+    <div class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="bJudul">
+      <button class="modal-close" id="beritaModalClose" aria-label="Tutup">✕</button>
+      <div class="modal-photo" id="bFoto" hidden></div>
+      <div class="modal-info" id="bMeta" hidden>
+        <span class="mi-value" id="bMetaVal"></span>
+      </div>
+      <h3 id="bJudul"></h3>
+      <div class="modal-article" id="bIsi"></div>
     </div>
   </div>
 

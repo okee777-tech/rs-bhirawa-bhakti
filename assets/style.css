@@ -429,3 +429,58 @@ table.schedule .doc-cell { display: flex; align-items: center; gap: .7rem; }
 @media (max-width: 760px) {
   .gallery-grid { grid-template-columns: 1fr; }
 }
+
+/* ---------- Kepala RS ---------- */
+.kepala-card {
+  display: grid; grid-template-columns: 300px 1fr; gap: 2.5rem; align-items: center;
+  background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+  padding: 2.5rem; box-shadow: var(--shadow);
+}
+.kepala-photo {
+  width: 100%; aspect-ratio: 3 / 4; border-radius: 16px; overflow: hidden;
+  background: linear-gradient(135deg, var(--primary-600), var(--primary-800));
+  display: grid; place-items: center; color: #fff; font-size: 4.5rem;
+}
+.kepala-photo img { width: 100%; height: 100%; object-fit: cover; }
+.kepala-body h2 { font-size: 1.05rem; color: var(--muted); font-weight: 600; margin-bottom: .3rem; }
+.kepala-nama { font-size: 1.55rem; font-weight: 800; color: var(--primary-800); line-height: 1.3; }
+.kepala-pangkat { font-size: .88rem; color: var(--accent-600); font-weight: 700; letter-spacing: .02em; margin: .3rem 0 1.1rem; }
+.kepala-visi { color: var(--muted); font-size: 1.02rem; font-style: italic; border-left: 3px solid var(--accent); padding-left: 1.1rem; }
+
+/* ---------- Carousel geser (tombol + scroll) ---------- */
+.scroll-wrap { position: relative; }
+.scroll-btn {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 5;
+  width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border);
+  background: #fff; color: var(--primary-800); font-size: 1.5rem; line-height: 1;
+  cursor: pointer; box-shadow: var(--shadow); display: grid; place-items: center;
+  transition: .15s ease; padding: 0;
+}
+.scroll-btn:hover { background: var(--primary-50); }
+.scroll-btn:disabled { opacity: .35; cursor: default; }
+.scroll-btn-left { left: -14px; }
+.scroll-btn-right { right: -14px; }
+
+.service-scroll {
+  display: flex; gap: 1.2rem; overflow-x: auto;
+  padding: .5rem .25rem 1.1rem; scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch; scrollbar-width: thin;
+}
+.service-scroll .service-card { flex: 0 0 auto; width: 272px; scroll-snap-align: start; }
+
+.news-scroll {
+  display: flex; gap: 1.2rem; overflow-x: auto;
+  padding: .5rem .25rem 1.1rem; scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch; scrollbar-width: thin;
+}
+.news-scroll .news-card { flex: 0 0 auto; width: 300px; flex-direction: column; scroll-snap-align: start; }
+.news-scroll .news-thumb { flex: none; height: 170px; }
+
+/* ---------- Responsif Kepala RS & carousel ---------- */
+@media (max-width: 900px) {
+  .kepala-card { grid-template-columns: 1fr; padding: 1.8rem; }
+  .kepala-photo { max-width: 260px; }
+}
+@media (max-width: 760px) {
+  .scroll-btn { display: none; }
+}

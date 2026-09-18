@@ -162,14 +162,14 @@ jobs:
           fi
 
       - name: Bangun ulang dokter.html
-        if: steps.cek.outputs.berubah == '1'
+        if: steps.cek.outputs.berubah == '1' || github.event_name == 'push'
         run: |
           set -euo pipefail
           python3 tools/fetch-google-sheet.py "$SHEET_CSV_URL" "${LAYANAN_CSV_URL:-}" "${GALERI_CSV_URL:-}" "${BERITA_CSV_URL:-}"
           python3 tools/banding-jadwal.py | tail -3 || true
 
       - name: Siapkan folder publik
-        if: steps.cek.outputs.berubah == '1'
+        if: steps.cek.outputs.berubah == '1' || github.event_name == 'push'
         run: |
           set -euo pipefail
           rm -rf dist && mkdir -p dist/assets
@@ -178,17 +178,17 @@ jobs:
           du -sh dist
 
       - name: Konfigurasi GitHub Pages
-        if: steps.cek.outputs.berubah == '1'
+        if: steps.cek.outputs.berubah == '1' || github.event_name == 'push'
         uses: actions/configure-pages@v5
 
       - name: Unggah ke GitHub Pages
-        if: steps.cek.outputs.berubah == '1'
+        if: steps.cek.outputs.berubah == '1' || github.event_name == 'push'
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
       - name: Deploy ke GitHub Pages
-        if: steps.cek.outputs.berubah == '1'
+        if: steps.cek.outputs.berubah == '1' || github.event_name == 'push'
         id: deployment
         uses: actions/deploy-pages@v4
 

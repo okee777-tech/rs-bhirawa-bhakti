@@ -37,6 +37,8 @@ GAL_MULAI = "<!-- GALERI:MULAI -->"
 GAL_SELESAI = "<!-- GALERI:SELESAI -->"
 BER_MULAI = "<!-- BERITA:MULAI -->"
 BER_SELESAI = "<!-- BERITA:SELESAI -->"
+BER_HOME_MULAI = "<!-- BERITA_HOME:MULAI -->"
+BER_HOME_SELESAI = "<!-- BERITA_HOME:SELESAI -->"
 
 HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
 HARI_IDX = {h: i for i, h in enumerate(HARI)}
@@ -158,6 +160,15 @@ def initials(name):
     return "".join(letters) or "DR"
 
 
+def scroll_wrap(inner, cls):
+    """Bungkus carousel dengan tombol geser kiri/kanan."""
+    return (f'<div class="scroll-wrap">\n'
+            f'  <button type="button" class="scroll-btn scroll-btn-left" aria-label="Geser kiri">‹</button>\n'
+            f'  <div class="{cls}">\n{inner}\n  </div>\n'
+            f'  <button type="button" class="scroll-btn scroll-btn-right" aria-label="Geser kanan">›</button>\n'
+            f'</div>')
+
+
 def build_blocks(rows):
     """CSV -> daftar blok HTML per poli (kartu dokter, sudah urut)."""
     # filter & kelompokkan
@@ -269,7 +280,7 @@ def build_home_cards(rows):
                 f'  <div class="schedule">{schedule}</div>\n'
                 f'</div>'
             )
-    return '<div class="doctor-scroll">\n' + "\n".join(cards) + '\n</div>'
+    return scroll_wrap("\n".join(cards), "doctor-scroll")
 
 
 def build_layanan():
@@ -308,11 +319,11 @@ def build_layanan():
             "jadwal": jadwal,
         })
 
-    grid = '<div class="grid grid-4">\n' + "\n".join(cards) + '\n</div>'
+    scroll = scroll_wrap("\n".join(cards), "service-scroll")
     script = ('<script>window.LAYANAN_DATA = '
               + json.dumps(data, ensure_ascii=False)
               + ';</script>')
-    return grid + "\n" + script
+    return scroll + "\n" + script
 
 
 def build_galeri():
@@ -361,8 +372,8 @@ def build_galeri():
     return grid + "\n" + script
 
 
-def build_berita():
-    """Daftar berita + data modal (dari data/berita.csv)."""
+def berita_data():
+    """Baca data/berita.csv -> (list kartu HTML, list data modal), atau None."""
     if not BERITA_CSV.exists():
         return None
     with BERITA_CSV.open(newline="", encoding="utf-8") as f:
@@ -404,12 +415,35 @@ def build_berita():
             "judul": judul, "tanggal": tanggal, "kategori": kategori,
             "ringkasan": ringkasan, "isi": isi, "foto": foto,
         })
+    return items, data
 
+
+def build_berita():
+    """Daftar berita + data modal untuk halaman berita.html."""
+    res = berita_data()
+    if not res:
+        return None
+    items, data = res
     lst = '<div class="news-list">\n' + "\n".join(items) + '\n</div>'
     script = ('<script>window.BERITA_DATA = '
               + json.dumps(data, ensure_ascii=False)
               + ';</script>')
     return lst + "\n" + script
+
+
+def build_berita_home(limit=6):
+    """Carousel berita + data modal untuk beranda (index.html)."""
+    res = berita_data()
+    if not res:
+        return None
+    items, data = res
+    items = items[:limit]
+    data = data[:limit]
+    scroll = scroll_wrap("\n".join(items), "news-scroll")
+    script = ('<script>window.BERITA_DATA = '
+              + json.dumps(data, ensure_ascii=False)
+              + ';</script>')
+    return scroll + "\n" + script
 
 
 def main():
@@ -469,6 +503,23 @@ def main():
                 print("⚠️ data/layanan.csv kosong/tidak ada — kartu layanan dibiarkan apa adanya.")
         else:
             print(f"⚠️ penanda {LAY_MULAI}/{LAY_SELESAI} tidak ada di index.html.")
+
+    # --- Beranda: carousel berita terbaru ---
+    if INDEX.exists():
+        idx = INDEX.read_text(encoding="utf-8")
+        if BER_HOME_MULAI in idx and BER_HOME_SELESAI in idx:
+            bhome = build_berita_home()
+            if bhome:
+                h1 = idx.index(BER_HOME_MULAI) + len(BER_HOME_MULAI)
+                h2 = idx.index(BER_HOME_SELESAI)
+                idx = idx[:h1] + "\n" + bhome + "\n      " + idx[h2:]
+                INDEX.write_text(idx, encoding="utf-8")
+                n_bh = bhome.count('class="card news-card"')
+                print(f"✅ index.html: {n_bh} berita beranda ditulis.")
+            else:
+                print("⚠️ data/berita.csv kosong/tidak ada — berita beranda dibiarkan apa adanya.")
+        else:
+            print(f"⚠️ penanda {BER_HOME_MULAI}/{BER_HOME_SELESAI} tidak ada di index.html.")
 
     # --- Galeri ---
     if GALERI_HTML.exists():
