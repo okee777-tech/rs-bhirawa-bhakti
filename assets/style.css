@@ -484,3 +484,81 @@ table.schedule .doc-cell { display: flex; align-items: center; gap: .7rem; }
 @media (max-width: 760px) {
   .scroll-btn { display: none; }
 }
+
+/* ---------- Slider hero (gambar berputar) ---------- */
+.hero-slider {
+  position: relative;
+  height: min(72vh, 560px);
+  min-height: 300px;
+  overflow: hidden;
+  background: #14211a;
+}
+.slides-track {
+  display: flex;
+  height: 100%;
+  transition: transform .75s cubic-bezier(.4, 0, .2, 1);
+  will-change: transform;
+}
+.slide {
+  flex: 0 0 100%;
+  height: 100%;
+}
+.slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+.slider-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.3);
+  background: rgba(17, 35, 20, .35);
+  color: #fff;
+  font-size: 1.7rem;
+  line-height: 1;
+  cursor: pointer;
+  display: grid; place-items: center;
+  z-index: 3;
+  transition: background .2s ease, transform .2s ease;
+  padding: 0;
+}
+.slider-nav:hover { background: rgba(17, 35, 20, .6); }
+.slider-nav:active { transform: translateY(-50%) scale(.92); }
+.slider-nav.prev { left: 16px; }
+.slider-nav.next { right: 16px; }
+
+.slider-dots {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 3;
+}
+.slider-dots button {
+  width: 10px; height: 10px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255,255,255,.55);
+  cursor: pointer;
+  padding: 0;
+  transition: width .25s ease, background .25s ease;
+}
+.slider-dots button.active {
+  width: 28px;
+  background: #fff;
+}
+
+@media (max-width: 760px) {
+  .hero-slider { height: 340px; min-height: 240px; }
+  .slider-nav { width: 38px; height: 38px; font-size: 1.4rem; }
+  .slider-nav.prev { left: 8px; }
+  .slider-nav.next { right: 8px; }
+}

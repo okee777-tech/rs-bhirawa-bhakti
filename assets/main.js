@@ -264,3 +264,58 @@
     update();
   });
 })();
+
+// Slider hero: otomatis geser halus + tombol panah & titik + pause saat disentuh.
+(function () {
+  var slider = document.getElementById('heroSlider');
+  if (!slider) return;
+  var track = document.getElementById('slidesTrack');
+  var prevBtn = document.getElementById('sliderPrev');
+  var nextBtn = document.getElementById('sliderNext');
+  var dotsWrap = document.getElementById('sliderDots');
+  if (!track || !dotsWrap) return;
+
+  var slides = track.children;
+  if (!slides.length) return;
+
+  var INTERVAL = 4500; // ms antar slide
+  var index = 0;
+  var timer = null;
+
+  // buat titik navigasi sesuai jumlah slide
+  for (var i = 0; i < slides.length; i++) {
+    (function (i) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('aria-label', 'Ke slide ' + (i + 1));
+      b.addEventListener('click', function () { go(i); restart(); });
+      dotsWrap.appendChild(b);
+    })(i);
+  }
+  var dots = dotsWrap.children;
+
+  function go(i) {
+    index = ((i % slides.length) + slides.length) % slides.length;
+    track.style.transform = 'translateX(' + (-index * 100) + '%)';
+    for (var d = 0; d < dots.length; d++) {
+      dots[d].classList.toggle('active', d === index);
+    }
+  }
+
+  function next() { go(index + 1); }
+  function prev() { go(index - 1); }
+  function stop() { if (timer) { clearInterval(timer); timer = null; } }
+  function start() { stop(); timer = setInterval(next, INTERVAL); }
+  function restart() { start(); }
+
+  if (nextBtn) nextBtn.addEventListener('click', function () { next(); restart(); });
+  if (prevBtn) prevBtn.addEventListener('click', function () { prev(); restart(); });
+
+  // pause otomatis saat kursor di atas slider / sentuh, lanjut saat keluar
+  slider.addEventListener('mouseenter', stop);
+  slider.addEventListener('mouseleave', start);
+  slider.addEventListener('touchstart', stop, { passive: true });
+
+  go(0);
+  start();
+})();
