@@ -35,6 +35,10 @@ URL_FILE = DATA / "gsheet-url.txt"
 LAYANAN_URL_FILE = DATA / "layanan-url.txt"
 GALERI_URL_FILE = DATA / "galeri-url.txt"
 BERITA_URL_FILE = DATA / "berita-url.txt"
+SLIDER_OUT = DATA / "slider.csv"
+PROFIL_OUT = DATA / "profil.csv"
+SLIDER_URL_FILE = DATA / "slider-url.txt"
+PROFIL_URL_FILE = DATA / "profil-url.txt"
 BUILD = ROOT / "tools" / "build-jadwal.py"
 
 HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
@@ -82,6 +86,20 @@ COLS_BERITA = {
     "foto": ["foto", "gambar", "photo", "linkfoto", "thumbnail"],
     "ringkasan": ["ringkasan", "summary", "resume", "singkat", "deskripsi"],
     "isi": ["isi", "konten", "content", "artikel", "isiberita", "teks"],
+}
+
+# kolom tab "Slider" -> kandidat header
+COLS_SLIDER = {
+    "gambar": ["gambar", "foto", "photo", "linkfoto", "link", "url", "gambarslide"],
+    "judul": ["judul", "caption", "teks", "title", "keterangan"],
+}
+
+# kolom tab "Profil" (Kepala RS) -> kandidat header
+COLS_PROFIL = {
+    "foto": ["foto", "gambar", "photo", "linkfoto", "link"],
+    "nama": ["nama", "namakepala", "namakepalars", "kepalars"],
+    "pangkat": ["pangkat", "jabatan", "nrppangkat", "pangkatnrp"],
+    "visi": ["visi", "sambutan", "pesan", "katasambutan", "quote"],
 }
 
 
@@ -267,6 +285,76 @@ def fetch_berita(src):
     return True
 
 
+def fetch_slider(src):
+    """Ambil tab Slider -> data/slider.csv. Balikan True kalau berhasil."""
+    text = read_source(src)
+    rows = list(csv.DictReader(text.splitlines()))
+    if not rows:
+        print("⚠️  Slider: CSV kosong / header tidak terbaca (dilewati).")
+        return False
+    cols = find_cols(rows[0].keys(), COLS_SLIDER)
+    if "gambar" not in cols:
+        print(f"⚠️  Slider: kolom 'Gambar' tidak ditemukan. Header: {list(rows[0].keys())}")
+        return False
+
+    def g(row, canon):
+        i = cols.get(canon)
+        return "" if i is None else list(row.values())[i]
+
+    out = []
+    for row in rows:
+        gambar = g(row, "gambar").strip()
+        if not gambar:
+            continue
+        out.append({
+            "gambar": gambar,
+            "judul": g(row, "judul").strip(),
+        })
+
+    SLIDER_OUT.parent.mkdir(parents=True, exist_ok=True)
+    fields = ["gambar", "judul"]
+    with SLIDER_OUT.open("w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=fields)
+        w.writeheader()
+        w.writerows(out)
+    print(f"✅ {len(out)} slide -> {SLIDER_OUT.name}")
+    return True
+
+
+def fetch_profil(src):
+    """Ambil tab Profil -> data/profil.csv. Balikan True kalau berhasil."""
+    text = read_source(src)
+    rows = list(csv.DictReader(text.splitlines()))
+    if not rows:
+        print("⚠️  Profil: CSV kosong / header tidak terbaca (dilewati).")
+        return False
+    cols = find_cols(rows[0].keys(), COLS_PROFIL)
+    if "nama" not in cols:
+        print(f"⚠️  Profil: kolom 'Nama' tidak ditemukan. Header: {list(rows[0].keys())}")
+        return False
+
+    def g(row, canon):
+        i = cols.get(canon)
+        return "" if i is None else list(row.values())[i]
+
+    row = rows[0]
+    out = [{
+        "foto": g(row, "foto").strip(),
+        "nama": g(row, "nama").strip(),
+        "pangkat": g(row, "pangkat").strip(),
+        "visi": g(row, "visi").strip(),
+    }]
+
+    PROFIL_OUT.parent.mkdir(parents=True, exist_ok=True)
+    fields = ["foto", "nama", "pangkat", "visi"]
+    with PROFIL_OUT.open("w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=fields)
+        w.writeheader()
+        w.writerows(out)
+    print(f"✅ profil kepala RS -> {PROFIL_OUT.name}")
+    return True
+
+
 def main():
     if len(sys.argv) > 1:
         src = sys.argv[1].strip()
@@ -381,7 +469,35 @@ def main():
         BERITA_URL_FILE.write_text(berita_src + "\n", encoding="utf-8")
         fetch_berita(berita_src)
 
-    # bangun ulang dokter.html + kartu layanan + galeri + berita
+    # --- tab Slider (opsional) ---
+    slider_src = None
+    if len(sys.argv) > 5:
+        slider_src = sys.argv[5].strip()
+    elif os.environ.get("SLIDER_CSV_URL"):
+        slider_src = os.environ["SLIDER_CSV_URL"].strip()
+    elif SLIDER_URL_FILE.exists():
+        slider_src = SLIDER_URL_FILE.read_text(encoding="utf-8").strip().splitlines()[0]
+
+    if slider_src and slider_src.startswith("http"):
+        DATA.mkdir(parents=True, exist_ok=True)
+        SLIDER_URL_FILE.write_text(slider_src + "\n", encoding="utf-8")
+        fetch_slider(slider_src)
+
+    # --- tab Profil (opsional) ---
+    profil_src = None
+    if len(sys.argv) > 6:
+        profil_src = sys.argv[6].strip()
+    elif os.environ.get("PROFIL_CSV_URL"):
+        profil_src = os.environ["PROFIL_CSV_URL"].strip()
+    elif PROFIL_URL_FILE.exists():
+        profil_src = PROFIL_URL_FILE.read_text(encoding="utf-8").strip().splitlines()[0]
+
+    if profil_src and profil_src.startswith("http"):
+        DATA.mkdir(parents=True, exist_ok=True)
+        PROFIL_URL_FILE.write_text(profil_src + "\n", encoding="utf-8")
+        fetch_profil(profil_src)
+
+    # bangun ulang dokter.html + kartu layanan + galeri + berita + slider + profil
     subprocess.run([sys.executable, str(BUILD)], check=True)
 
 

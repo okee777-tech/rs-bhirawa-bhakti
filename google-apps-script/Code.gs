@@ -146,3 +146,46 @@ function setupBerita() {
 
   Logger.log('OK: tab "Berita" siap. Isi konten aslinya, lalu publish tab ini ke web.');
 }
+
+/** Buat tab "Slider" + judul kolom + contoh isian (jalankan sekali). */
+function setupSlider() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Slider');
+  if (!sheet) sheet = ss.insertSheet('Slider');
+
+  const headers = ['Gambar', 'Judul'];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+
+  const contoh = [
+    ['https://drive.google.com/file/d/17g2k3O-UHZ5qQ_yeXwJZHGtdH9N4c7Iz/view?usp=sharing', ''],
+    ['https://drive.google.com/file/d/1FUvTV8doopozAVURl5yTB73luDe_vxsb/view?usp=sharing', ''],
+    ['https://drive.google.com/file/d/1ob9BKwpXbMNnnwYQ8PMZ7890AZ32TfAv/view?usp=sharing', '']
+  ];
+  if (sheet.getLastRow() < 2) {
+    sheet.getRange(2, 1, contoh.length, headers.length).setValues(contoh);
+  }
+
+  Logger.log('OK: tab "Slider" siap. Ganti link Gambar & isi Judul (opsional), lalu publish tab ini ke web.');
+}
+
+/** Buat tab "Profil" (Kepala RS) + judul kolom + contoh isian (jalankan sekali). */
+function setupProfil() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Profil');
+  if (!sheet) sheet = ss.insertSheet('Profil');
+
+  const headers = ['Foto', 'Nama', 'Pangkat', 'Visi'];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+
+  const contoh = [[
+    'https://drive.google.com/file/d/1BHjnWB3Sl0i41F3qxNZHnWisSs2NXqrS/view?usp=drive_link',
+    'dr. Hari Indratno, Sp.JP (K), FIHA',
+    'Mayor Ckm · NRP. 11070048530182',
+    'Menjadi Rumah Sakit Pilihan Utama dan Kebanggaan Prajurit TNI, PNS TNI AD dan Keluarganya serta Masyarakat Kota Malang dan sekitarnya.'
+  ]];
+  if (sheet.getLastRow() < 2) {
+    sheet.getRange(2, 1, contoh.length, headers.length).setValues(contoh);
+  }
+
+  Logger.log('OK: tab "Profil" siap. Ganti foto/nama/pangkat/visi, lalu publish tab ini ke web.');
+}

@@ -24,6 +24,8 @@ INDEX = ROOT / "index.html"
 LAYANAN_CSV = ROOT / "data" / "layanan.csv"
 GALERI_CSV = ROOT / "data" / "galeri.csv"
 BERITA_CSV = ROOT / "data" / "berita.csv"
+SLIDER_CSV = ROOT / "data" / "slider.csv"
+PROFIL_CSV = ROOT / "data" / "profil.csv"
 GALERI_HTML = ROOT / "galeri.html"
 BERITA_HTML = ROOT / "berita.html"
 
@@ -39,6 +41,10 @@ BER_MULAI = "<!-- BERITA:MULAI -->"
 BER_SELESAI = "<!-- BERITA:SELESAI -->"
 BER_HOME_MULAI = "<!-- BERITA_HOME:MULAI -->"
 BER_HOME_SELESAI = "<!-- BERITA_HOME:SELESAI -->"
+SLI_MULAI = "<!-- SLIDER:MULAI -->"
+SLI_SELESAI = "<!-- SLIDER:SELESAI -->"
+PRO_MULAI = "<!-- PROFIL:MULAI -->"
+PRO_SELESAI = "<!-- PROFIL:SELESAI -->"
 
 HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
 HARI_IDX = {h: i for i, h in enumerate(HARI)}
@@ -446,6 +452,73 @@ def build_berita_home(limit=6):
     return scroll + "\n" + script
 
 
+def build_slider():
+    """Slide hero beranda (dari data/slider.csv)."""
+    if not SLIDER_CSV.exists():
+        return None
+    with SLIDER_CSV.open(newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    slides = []
+    for i, r in enumerate(rows):
+        img = foto_url(r.get("gambar", ""), size="w1600")
+        if not img:
+            continue
+        judul = (r.get("judul") or "").strip()
+        alt = judul or f"RS Bhirawa Bhakti — slide {i + 1}"
+        cap = (f'<div class="slide-caption">{html.escape(judul)}</div>' if judul else "")
+        loading = "eager" if i == 0 else "lazy"
+        slides.append(
+            f'<div class="slide">\n'
+            f'  <img src="{html.escape(img)}" alt="{html.escape(alt)}" loading="{loading}">\n'
+            f'  {cap}\n'
+            f'</div>'
+        )
+    if not slides:
+        return None
+    return "\n".join(slides)
+
+
+def build_profil():
+    """Kartu Kepala RS beranda (dari data/profil.csv)."""
+    if not PROFIL_CSV.exists():
+        return None
+    with PROFIL_CSV.open(newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    if not rows:
+        return None
+    r = rows[0]
+    nama = (r.get("nama") or "").strip()
+    if not nama:
+        return None
+    pangkat = (r.get("pangkat") or "").strip()
+    visi = (r.get("visi") or "").strip()
+    foto = foto_url(r.get("foto", ""), size="w800")
+
+    if foto:
+        foto_html = (f'<div class="kepala-photo">\n'
+                     f'  <img src="{html.escape(foto)}" alt="{html.escape(nama)}">\n'
+                     f'</div>')
+    else:
+        foto_html = '<div class="kepala-photo">👨‍⚕️</div>'
+
+    pangkat_html = (f'<div class="kepala-pangkat">{html.escape(pangkat)}</div>'
+                    if pangkat else "")
+    visi_html = (f'<p class="kepala-visi">“{html.escape(visi)}”</p>' if visi else "")
+
+    return (
+        '<div class="kepala-card">\n'
+        f'  {foto_html}\n'
+        '  <div class="kepala-body">\n'
+        '    <span class="eyebrow">Sambutan</span>\n'
+        '    <h2>Kepala Rumah Sakit Bhirawa Bhakti</h2>\n'
+        f'    <div class="kepala-nama">{html.escape(nama)}</div>\n'
+        f'    {pangkat_html}\n'
+        f'    {visi_html}\n'
+        '  </div>\n'
+        '</div>'
+    )
+
+
 def main():
     if not CSV.exists():
         raise SystemExit(f"FAIL: {CSV} belum ada. Jalankan tools/extract-jadwal.py dulu.")
@@ -520,6 +593,39 @@ def main():
                 print("⚠️ data/berita.csv kosong/tidak ada — berita beranda dibiarkan apa adanya.")
         else:
             print(f"⚠️ penanda {BER_HOME_MULAI}/{BER_HOME_SELESAI} tidak ada di index.html.")
+
+    # --- Beranda: slider hero ---
+    if INDEX.exists():
+        idx = INDEX.read_text(encoding="utf-8")
+        if SLI_MULAI in idx and SLI_SELESAI in idx:
+            sli = build_slider()
+            if sli:
+                s1 = idx.index(SLI_MULAI) + len(SLI_MULAI)
+                s2 = idx.index(SLI_SELESAI)
+                idx = idx[:s1] + "\n" + sli + "\n      " + idx[s2:]
+                INDEX.write_text(idx, encoding="utf-8")
+                n_sli = sli.count('class="slide"')
+                print(f"✅ index.html: {n_sli} slide ditulis.")
+            else:
+                print("⚠️ data/slider.csv kosong/tidak ada — slider dibiarkan apa adanya.")
+        else:
+            print(f"⚠️ penanda {SLI_MULAI}/{SLI_SELESAI} tidak ada di index.html.")
+
+    # --- Beranda: profil kepala RS ---
+    if INDEX.exists():
+        idx = INDEX.read_text(encoding="utf-8")
+        if PRO_MULAI in idx and PRO_SELESAI in idx:
+            pro = build_profil()
+            if pro:
+                p1 = idx.index(PRO_MULAI) + len(PRO_MULAI)
+                p2 = idx.index(PRO_SELESAI)
+                idx = idx[:p1] + "\n" + pro + "\n      " + idx[p2:]
+                INDEX.write_text(idx, encoding="utf-8")
+                print("✅ index.html: profil kepala RS ditulis.")
+            else:
+                print("⚠️ data/profil.csv kosong/tidak ada — profil dibiarkan apa adanya.")
+        else:
+            print(f"⚠️ penanda {PRO_MULAI}/{PRO_SELESAI} tidak ada di index.html.")
 
     # --- Galeri ---
     if GALERI_HTML.exists():

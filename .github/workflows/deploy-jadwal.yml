@@ -29,6 +29,8 @@ jobs:
       LAYANAN_CSV_URL: ${{ vars.LAYANAN_CSV_URL != '' && vars.LAYANAN_CSV_URL || secrets.LAYANAN_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFcDklj6y4iynfYzuC8DzU1zN1jmrlgbr9qhGhAlk3XmmAZvC4ZcmUAFqPf7BL_Fbp1bEd8N6q_G7B/pub?output=csv&gid=1621418019' }}
       GALERI_CSV_URL: ${{ vars.GALERI_CSV_URL != '' && vars.GALERI_CSV_URL || secrets.GALERI_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFcDklj6y4iynfYzuC8DzU1zN1jmrlgbr9qhGhAlk3XmmAZvC4ZcmUAFqPf7BL_Fbp1bEd8N6q_G7B/pub?output=csv&gid=710468756' }}
       BERITA_CSV_URL: ${{ vars.BERITA_CSV_URL != '' && vars.BERITA_CSV_URL || secrets.BERITA_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFcDklj6y4iynfYzuC8DzU1zN1jmrlgbr9qhGhAlk3XmmAZvC4ZcmUAFqPf7BL_Fbp1bEd8N6q_G7B/pub?output=csv&gid=1271807554' }}
+      SLIDER_CSV_URL: ${{ vars.SLIDER_CSV_URL != '' && vars.SLIDER_CSV_URL || secrets.SLIDER_CSV_URL || '' }}
+      PROFIL_CSV_URL: ${{ vars.PROFIL_CSV_URL != '' && vars.PROFIL_CSV_URL || secrets.PROFIL_CSV_URL || '' }}
 
     steps:
       - name: Ambil repo
@@ -147,8 +149,47 @@ jobs:
             fi
           fi
 
+          BARU_SLIDER="-"
+          BARU_PROFIL="-"
+
+          if [ -n "${SLIDER_CSV_URL:-}" ]; then
+            case "$SLIDER_CSV_URL" in
+              *pubhtml*)
+                SLIDER_CSV_URL="${SLIDER_CSV_URL%pubhtml*}pub?output=csv"
+                echo "SLIDER_CSV_URL=$SLIDER_CSV_URL" >> "$GITHUB_ENV"
+                ;;
+            esac
+            for i in 1 2 3 4 5 6 7 8 9 10; do
+              curl -sSL --max-time 60 -o /tmp/slider.csv "$SLIDER_CSV_URL" || true
+              BARIS_S=$(head -1 /tmp/slider.csv 2>/dev/null || true)
+              if printf '%s' "$BARIS_S" | grep -qi "gambar"; then break; fi
+              sleep 10
+            done
+            if [ -f /tmp/slider.csv ]; then
+              BARU_SLIDER=$(sha256sum /tmp/slider.csv | cut -d' ' -f1)
+            fi
+          fi
+
+          if [ -n "${PROFIL_CSV_URL:-}" ]; then
+            case "$PROFIL_CSV_URL" in
+              *pubhtml*)
+                PROFIL_CSV_URL="${PROFIL_CSV_URL%pubhtml*}pub?output=csv"
+                echo "PROFIL_CSV_URL=$PROFIL_CSV_URL" >> "$GITHUB_ENV"
+                ;;
+            esac
+            for i in 1 2 3 4 5 6 7 8 9 10; do
+              curl -sSL --max-time 60 -o /tmp/profil.csv "$PROFIL_CSV_URL" || true
+              BARIS_P=$(head -1 /tmp/profil.csv 2>/dev/null || true)
+              if printf '%s' "$BARIS_P" | grep -qi "nama"; then break; fi
+              sleep 10
+            done
+            if [ -f /tmp/profil.csv ]; then
+              BARU_PROFIL=$(sha256sum /tmp/profil.csv | cut -d' ' -f1)
+            fi
+          fi
+
           BARU_JADWAL=$(sha256sum /tmp/jadwal.csv | cut -d' ' -f1)
-          BARU="${BARU_JADWAL}:${BARU_LAYANAN}:${BARU_GALERI}:${BARU_BERITA}"
+          BARU="${BARU_JADWAL}:${BARU_LAYANAN}:${BARU_GALERI}:${BARU_BERITA}:${BARU_SLIDER}:${BARU_PROFIL}"
           LAMA=$(cat .jadwal-terakhir 2>/dev/null || echo "-")
           echo "sidik jari baru: $BARU"
           echo "sidik jari lama: $LAMA"
@@ -165,7 +206,7 @@ jobs:
         if: steps.cek.outputs.berubah == '1' || github.event_name == 'push'
         run: |
           set -euo pipefail
-          python3 tools/fetch-google-sheet.py "$SHEET_CSV_URL" "${LAYANAN_CSV_URL:-}" "${GALERI_CSV_URL:-}" "${BERITA_CSV_URL:-}"
+          python3 tools/fetch-google-sheet.py "$SHEET_CSV_URL" "${LAYANAN_CSV_URL:-}" "${GALERI_CSV_URL:-}" "${BERITA_CSV_URL:-}" "${SLIDER_CSV_URL:-}" "${PROFIL_CSV_URL:-}"
           python3 tools/banding-jadwal.py | tail -3 || true
 
       - name: Siapkan folder publik

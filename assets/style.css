@@ -502,6 +502,7 @@ table.schedule .doc-cell { display: flex; align-items: center; gap: .7rem; }
 .slide {
   flex: 0 0 100%;
   height: 100%;
+  position: relative;
 }
 .slide img {
   width: 100%;
@@ -510,6 +511,16 @@ table.schedule .doc-cell { display: flex; align-items: center; gap: .7rem; }
   display: block;
   pointer-events: none;
   user-select: none;
+}
+.slide-caption {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 2.2rem 2rem 1.1rem;
+  background: linear-gradient(to top, rgba(17, 35, 20, .82), rgba(17, 35, 20, 0));
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: .2px;
 }
 .slider-nav {
   position: absolute;
