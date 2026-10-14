@@ -31,10 +31,10 @@ jobs:
       BERITA_CSV_URL: ${{ vars.BERITA_CSV_URL != '' && vars.BERITA_CSV_URL || secrets.BERITA_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFcDklj6y4iynfYzuC8DzU1zN1jmrlgbr9qhGhAlk3XmmAZvC4ZcmUAFqPf7BL_Fbp1bEd8N6q_G7B/pub?output=csv&gid=1271807554' }}
       SLIDER_CSV_URL: ${{ vars.SLIDER_CSV_URL != '' && vars.SLIDER_CSV_URL || secrets.SLIDER_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFcDklj6y4iynfYzuC8DzU1zN1jmrlgbr9qhGhAlk3XmmAZvC4ZcmUAFqPf7BL_Fbp1bEd8N6q_G7B/pub?output=csv&gid=22551658' }}
       PROFIL_CSV_URL: ${{ vars.PROFIL_CSV_URL != '' && vars.PROFIL_CSV_URL || secrets.PROFIL_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFcDklj6y4iynfYzuC8DzU1zN1jmrlgbr9qhGhAlk3XmmAZvC4ZcmUAFqPf7BL_Fbp1bEd8N6q_G7B/pub?output=csv&gid=450449220' }}
-      PENGUMUMAN_CSV_URL: ${{ vars.PENGUMUMAN_CSV_URL != '' && vars.PENGUMUMAN_CSV_URL || secrets.PENGUMUMAN_CSV_URL || '' }}
-      KONTAK_CSV_URL: ${{ vars.KONTAK_CSV_URL != '' && vars.KONTAK_CSV_URL || secrets.KONTAK_CSV_URL || '' }}
-      HERO_CSV_URL: ${{ vars.HERO_CSV_URL != '' && vars.HERO_CSV_URL || secrets.HERO_CSV_URL || '' }}
-      KEGIATAN_CSV_URL: ${{ vars.KEGIATAN_CSV_URL != '' && vars.KEGIATAN_CSV_URL || secrets.KEGIATAN_CSV_URL || '' }}
+      PENGUMUMAN_CSV_URL: ${{ vars.PENGUMUMAN_CSV_URL != '' && vars.PENGUMUMAN_CSV_URL || secrets.PENGUMUMAN_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFcDklj6y4iynfYzuC8DzU1zN1jmrlgbr9qhGhAlk3XmmAZvC4ZcmUAFqPf7BL_Fbp1bEd8N6q_G7B/pub?output=csv&gid=178905889' }}
+      KONTAK_CSV_URL: ${{ vars.KONTAK_CSV_URL != '' && vars.KONTAK_CSV_URL || secrets.KONTAK_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFcDklj6y4iynfYzuC8DzU1zN1jmrlgbr9qhGhAlk3XmmAZvC4ZcmUAFqPf7BL_Fbp1bEd8N6q_G7B/pub?output=csv&gid=285377610' }}
+      HERO_CSV_URL: ${{ vars.HERO_CSV_URL != '' && vars.HERO_CSV_URL || secrets.HERO_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFcDklj6y4iynfYzuC8DzU1zN1jmrlgbr9qhGhAlk3XmmAZvC4ZcmUAFqPf7BL_Fbp1bEd8N6q_G7B/pub?output=csv&gid=512670195' }}
+      KEGIATAN_CSV_URL: ${{ vars.KEGIATAN_CSV_URL != '' && vars.KEGIATAN_CSV_URL || secrets.KEGIATAN_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFcDklj6y4iynfYzuC8DzU1zN1jmrlgbr9qhGhAlk3XmmAZvC4ZcmUAFqPf7BL_Fbp1bEd8N6q_G7B/pub?output=csv&gid=761875205' }}
 
     steps:
       - name: Ambil repo
