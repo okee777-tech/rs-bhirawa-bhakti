@@ -319,3 +319,11 @@
   go(0);
   start();
 })();
+
+// Ticker pengumuman: gandakan isi supaya loop-nya mulus tanpa putus.
+(function () {
+  var track = document.getElementById('tickerTrack');
+  if (!track || !track.children.length) return;
+  var nodes = Array.prototype.slice.call(track.children);
+  nodes.forEach(function (n) { track.appendChild(n.cloneNode(true)); });
+})();

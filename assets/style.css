@@ -573,3 +573,67 @@ table.schedule .doc-cell { display: flex; align-items: center; gap: .7rem; }
   .slider-nav.prev { left: 8px; }
   .slider-nav.next { right: 8px; }
 }
+
+/* ---------- Ticker pengumuman berjalan ---------- */
+.ticker {
+  background: var(--accent);
+  color: var(--primary-800);
+  overflow: hidden;
+  font-size: .95rem;
+  font-weight: 600;
+}
+.ticker-track {
+  display: flex;
+  width: max-content;
+  white-space: nowrap;
+  animation: tickerScroll 32s linear infinite;
+  padding: .55rem 0;
+}
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+}
+.ticker-item::after {
+  content: "•";
+  margin: 0 1.7rem;
+  opacity: .6;
+}
+.ticker:hover .ticker-track { animation-play-state: paused; }
+@keyframes tickerScroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ---------- Kartu kegiatan (event) ---------- */
+.event-card {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+.event-date {
+  flex: none;
+  width: 58px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 12px;
+  text-align: center;
+  padding: .65rem .15rem;
+  line-height: 1;
+}
+.event-date b {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+.event-date span {
+  display: block;
+  margin-top: .3rem;
+  font-size: .74rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  opacity: .85;
+}
+.event-body { flex: 1; min-width: 0; }
+.event-body .meta { color: var(--accent-600); font-weight: 600; }
+.event-body h3 { margin: .25rem 0 .35rem; font-size: 1.08rem; line-height: 1.35; }
+.event-body p { color: var(--ink); opacity: .85; margin: 0; font-size: .95rem; }

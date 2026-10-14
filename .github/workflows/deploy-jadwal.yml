@@ -31,6 +31,10 @@ jobs:
       BERITA_CSV_URL: ${{ vars.BERITA_CSV_URL != '' && vars.BERITA_CSV_URL || secrets.BERITA_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFcDklj6y4iynfYzuC8DzU1zN1jmrlgbr9qhGhAlk3XmmAZvC4ZcmUAFqPf7BL_Fbp1bEd8N6q_G7B/pub?output=csv&gid=1271807554' }}
       SLIDER_CSV_URL: ${{ vars.SLIDER_CSV_URL != '' && vars.SLIDER_CSV_URL || secrets.SLIDER_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFcDklj6y4iynfYzuC8DzU1zN1jmrlgbr9qhGhAlk3XmmAZvC4ZcmUAFqPf7BL_Fbp1bEd8N6q_G7B/pub?output=csv&gid=22551658' }}
       PROFIL_CSV_URL: ${{ vars.PROFIL_CSV_URL != '' && vars.PROFIL_CSV_URL || secrets.PROFIL_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFcDklj6y4iynfYzuC8DzU1zN1jmrlgbr9qhGhAlk3XmmAZvC4ZcmUAFqPf7BL_Fbp1bEd8N6q_G7B/pub?output=csv&gid=450449220' }}
+      PENGUMUMAN_CSV_URL: ${{ vars.PENGUMUMAN_CSV_URL != '' && vars.PENGUMUMAN_CSV_URL || secrets.PENGUMUMAN_CSV_URL || '' }}
+      KONTAK_CSV_URL: ${{ vars.KONTAK_CSV_URL != '' && vars.KONTAK_CSV_URL || secrets.KONTAK_CSV_URL || '' }}
+      HERO_CSV_URL: ${{ vars.HERO_CSV_URL != '' && vars.HERO_CSV_URL || secrets.HERO_CSV_URL || '' }}
+      KEGIATAN_CSV_URL: ${{ vars.KEGIATAN_CSV_URL != '' && vars.KEGIATAN_CSV_URL || secrets.KEGIATAN_CSV_URL || '' }}
 
     steps:
       - name: Ambil repo
@@ -188,8 +192,85 @@ jobs:
             fi
           fi
 
+          BARU_PENGUMUMAN="-"
+          BARU_KONTAK="-"
+          BARU_HERO="-"
+          BARU_KEGIATAN="-"
+
+          if [ -n "${PENGUMUMAN_CSV_URL:-}" ]; then
+            case "$PENGUMUMAN_CSV_URL" in
+              *pubhtml*)
+                PENGUMUMAN_CSV_URL="${PENGUMUMAN_CSV_URL%pubhtml*}pub?output=csv"
+                echo "PENGUMUMAN_CSV_URL=$PENGUMUMAN_CSV_URL" >> "$GITHUB_ENV"
+                ;;
+            esac
+            for i in 1 2 3 4 5 6 7 8 9 10; do
+              curl -sSL --max-time 60 -o /tmp/pengumuman.csv "$PENGUMUMAN_CSV_URL" || true
+              BARIS_AN=$(head -1 /tmp/pengumuman.csv 2>/dev/null || true)
+              if printf '%s' "$BARIS_AN" | grep -qi "teks"; then break; fi
+              sleep 10
+            done
+            if [ -f /tmp/pengumuman.csv ]; then
+              BARU_PENGUMUMAN=$(sha256sum /tmp/pengumuman.csv | cut -d' ' -f1)
+            fi
+          fi
+
+          if [ -n "${KONTAK_CSV_URL:-}" ]; then
+            case "$KONTAK_CSV_URL" in
+              *pubhtml*)
+                KONTAK_CSV_URL="${KONTAK_CSV_URL%pubhtml*}pub?output=csv"
+                echo "KONTAK_CSV_URL=$KONTAK_CSV_URL" >> "$GITHUB_ENV"
+                ;;
+            esac
+            for i in 1 2 3 4 5 6 7 8 9 10; do
+              curl -sSL --max-time 60 -o /tmp/kontak.csv "$KONTAK_CSV_URL" || true
+              BARIS_KT=$(head -1 /tmp/kontak.csv 2>/dev/null || true)
+              if printf '%s' "$BARIS_KT" | grep -qi "alamat"; then break; fi
+              sleep 10
+            done
+            if [ -f /tmp/kontak.csv ]; then
+              BARU_KONTAK=$(sha256sum /tmp/kontak.csv | cut -d' ' -f1)
+            fi
+          fi
+
+          if [ -n "${HERO_CSV_URL:-}" ]; then
+            case "$HERO_CSV_URL" in
+              *pubhtml*)
+                HERO_CSV_URL="${HERO_CSV_URL%pubhtml*}pub?output=csv"
+                echo "HERO_CSV_URL=$HERO_CSV_URL" >> "$GITHUB_ENV"
+                ;;
+            esac
+            for i in 1 2 3 4 5 6 7 8 9 10; do
+              curl -sSL --max-time 60 -o /tmp/hero.csv "$HERO_CSV_URL" || true
+              BARIS_HR=$(head -1 /tmp/hero.csv 2>/dev/null || true)
+              if printf '%s' "$BARIS_HR" | grep -qi "judul"; then break; fi
+              sleep 10
+            done
+            if [ -f /tmp/hero.csv ]; then
+              BARU_HERO=$(sha256sum /tmp/hero.csv | cut -d' ' -f1)
+            fi
+          fi
+
+          if [ -n "${KEGIATAN_CSV_URL:-}" ]; then
+            case "$KEGIATAN_CSV_URL" in
+              *pubhtml*)
+                KEGIATAN_CSV_URL="${KEGIATAN_CSV_URL%pubhtml*}pub?output=csv"
+                echo "KEGIATAN_CSV_URL=$KEGIATAN_CSV_URL" >> "$GITHUB_ENV"
+                ;;
+            esac
+            for i in 1 2 3 4 5 6 7 8 9 10; do
+              curl -sSL --max-time 60 -o /tmp/kegiatan.csv "$KEGIATAN_CSV_URL" || true
+              BARIS_KG=$(head -1 /tmp/kegiatan.csv 2>/dev/null || true)
+              if printf '%s' "$BARIS_KG" | grep -qi "nama"; then break; fi
+              sleep 10
+            done
+            if [ -f /tmp/kegiatan.csv ]; then
+              BARU_KEGIATAN=$(sha256sum /tmp/kegiatan.csv | cut -d' ' -f1)
+            fi
+          fi
+
           BARU_JADWAL=$(sha256sum /tmp/jadwal.csv | cut -d' ' -f1)
-          BARU="${BARU_JADWAL}:${BARU_LAYANAN}:${BARU_GALERI}:${BARU_BERITA}:${BARU_SLIDER}:${BARU_PROFIL}"
+          BARU="${BARU_JADWAL}:${BARU_LAYANAN}:${BARU_GALERI}:${BARU_BERITA}:${BARU_SLIDER}:${BARU_PROFIL}:${BARU_PENGUMUMAN}:${BARU_KONTAK}:${BARU_HERO}:${BARU_KEGIATAN}"
           LAMA=$(cat .jadwal-terakhir 2>/dev/null || echo "-")
           echo "sidik jari baru: $BARU"
           echo "sidik jari lama: $LAMA"
@@ -206,7 +287,7 @@ jobs:
         if: steps.cek.outputs.berubah == '1' || github.event_name == 'push'
         run: |
           set -euo pipefail
-          python3 tools/fetch-google-sheet.py "$SHEET_CSV_URL" "${LAYANAN_CSV_URL:-}" "${GALERI_CSV_URL:-}" "${BERITA_CSV_URL:-}" "${SLIDER_CSV_URL:-}" "${PROFIL_CSV_URL:-}"
+          python3 tools/fetch-google-sheet.py "$SHEET_CSV_URL" "${LAYANAN_CSV_URL:-}" "${GALERI_CSV_URL:-}" "${BERITA_CSV_URL:-}" "${SLIDER_CSV_URL:-}" "${PROFIL_CSV_URL:-}" "${PENGUMUMAN_CSV_URL:-}" "${KONTAK_CSV_URL:-}" "${HERO_CSV_URL:-}" "${KEGIATAN_CSV_URL:-}"
           python3 tools/banding-jadwal.py | tail -3 || true
 
       - name: Siapkan folder publik

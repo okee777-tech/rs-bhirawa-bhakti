@@ -26,6 +26,10 @@ GALERI_CSV = ROOT / "data" / "galeri.csv"
 BERITA_CSV = ROOT / "data" / "berita.csv"
 SLIDER_CSV = ROOT / "data" / "slider.csv"
 PROFIL_CSV = ROOT / "data" / "profil.csv"
+PENGUMUMAN_CSV = ROOT / "data" / "pengumuman.csv"
+KONTAK_CSV = ROOT / "data" / "kontak.csv"
+HERO_CSV = ROOT / "data" / "hero.csv"
+KEGIATAN_CSV = ROOT / "data" / "kegiatan.csv"
 GALERI_HTML = ROOT / "galeri.html"
 BERITA_HTML = ROOT / "berita.html"
 
@@ -45,6 +49,16 @@ SLI_MULAI = "<!-- SLIDER:MULAI -->"
 SLI_SELESAI = "<!-- SLIDER:SELESAI -->"
 PRO_MULAI = "<!-- PROFIL:MULAI -->"
 PRO_SELESAI = "<!-- PROFIL:SELESAI -->"
+PEN_MULAI = "<!-- PENGUMUMAN:MULAI -->"
+PEN_SELESAI = "<!-- PENGUMUMAN:SELESAI -->"
+KON_MULAI = "<!-- KONTAK:MULAI -->"
+KON_SELESAI = "<!-- KONTAK:SELESAI -->"
+SOS_MULAI = "<!-- SOSMED:MULAI -->"
+SOS_SELESAI = "<!-- SOSMED:SELESAI -->"
+HER_MULAI = "<!-- HERO:MULAI -->"
+HER_SELESAI = "<!-- HERO:SELESAI -->"
+KEG_MULAI = "<!-- KEGIATAN:MULAI -->"
+KEG_SELESAI = "<!-- KEGIATAN:SELESAI -->"
 
 HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
 HARI_IDX = {h: i for i, h in enumerate(HARI)}
@@ -519,6 +533,166 @@ def build_profil():
     )
 
 
+def build_pengumuman():
+    """Teks berjalan (ticker) di atas halaman (dari data/pengumuman.csv)."""
+    if not PENGUMUMAN_CSV.exists():
+        return None
+    with PENGUMUMAN_CSV.open(newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    items = []
+    for r in rows:
+        teks = (r.get("teks") or "").strip()
+        if teks:
+            items.append(f'<span class="ticker-item">{html.escape(teks)}</span>')
+    if not items:
+        return None
+    return "\n".join(items)
+
+
+def _kontak_row():
+    """Baris pertama data/kontak.csv -> dict, atau None."""
+    if not KONTAK_CSV.exists():
+        return None
+    with KONTAK_CSV.open(newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    if not rows:
+        return None
+    r = rows[0]
+
+    def g(k):
+        return (r.get(k) or "").strip()
+    return g
+
+
+def build_kontak():
+    """Kolom 'Hubungi Kami' di footer (dari data/kontak.csv)."""
+    g = _kontak_row()
+    if not g:
+        return None
+    alamat, telepon, teleponugd, email, whatsapp = g("alamat"), g("telepon"), g("teleponugd"), g("email"), g("whatsapp")
+    if not any((alamat, telepon, teleponugd, email, whatsapp)):
+        return None
+
+    li = []
+    if alamat:
+        li.append(f'<li>📍 {html.escape(alamat)}</li>')
+    if telepon:
+        li.append(f'<li>📞 <a href="tel:{re.sub(r"[^0-9+]", "", telepon)}">{html.escape(telepon)}</a></li>')
+    if teleponugd:
+        li.append(f'<li>🚑 <a href="tel:{re.sub(r"[^0-9+]", "", teleponugd)}">{html.escape(teleponugd)} (UGD 24 Jam)</a></li>')
+    if whatsapp:
+        wa = re.sub(r"[^0-9]", "", whatsapp)
+        li.append(f'<li>💬 <a href="https://wa.me/{wa}" target="_blank" rel="noopener">WhatsApp</a></li>')
+    if email:
+        li.append(f'<li>✉️ <a href="mailto:{html.escape(email)}">{html.escape(email)}</a></li>')
+    if not li:
+        return None
+    return '<ul class="foot-contact">\n  ' + "\n  ".join(li) + "\n</ul>"
+
+
+def build_sosmed():
+    """Ikon media sosial di footer (dari data/kontak.csv)."""
+    g = _kontak_row()
+    if not g:
+        return None
+    links = []
+    if g("instagram"):
+        links.append(f'<a href="{html.escape(g("instagram"))}" target="_blank" rel="noopener" title="Instagram">📷</a>')
+    if g("facebook"):
+        links.append(f'<a href="{html.escape(g("facebook"))}" target="_blank" rel="noopener" title="Facebook">📘</a>')
+    if g("youtube"):
+        links.append(f'<a href="{html.escape(g("youtube"))}" target="_blank" rel="noopener" title="YouTube">▶️</a>')
+    if not links:
+        return None
+    return '<div class="social-row">\n  ' + "\n  ".join(links) + "\n</div>"
+
+
+def build_hero():
+    """Judul + deskripsi + tombol hero beranda (dari data/hero.csv)."""
+    if not HERO_CSV.exists():
+        return None
+    with HERO_CSV.open(newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    if not rows:
+        return None
+    r = rows[0]
+    judul = (r.get("judul") or "").strip()
+    if not judul:
+        return None
+    deskripsi = (r.get("deskripsi") or "").strip()
+    tekstombol = (r.get("tekstombol") or "").strip() or "Lihat Dokter & Jadwal"
+
+    # Dukung teks beraksen: "bagian biasa | bagian berwarna"
+    if "|" in judul:
+        normal, _, accent = judul.partition("|")
+        h1 = (f'<h1>{html.escape(normal.strip())} '
+              f'<span>{html.escape(accent.strip())}</span></h1>')
+    else:
+        h1 = f'<h1>{html.escape(judul)}</h1>'
+
+    parts = [h1]
+    if deskripsi:
+        parts.append(f'<p class="lead">{html.escape(deskripsi)}</p>')
+    parts.append(
+        '<div class="hero-cta">\n'
+        f'    <a href="dokter.html" class="btn btn-accent btn-lg">🩺 {html.escape(tekstombol)}</a>\n'
+        '    <a href="komplain.html" class="btn btn-ghost-light btn-lg">Sampaikan Komplain</a>\n'
+        '  </div>'
+    )
+    return "\n".join(parts)
+
+
+BULAN_PENDEK = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"]
+
+
+def _parse_tanggal(s):
+    """'DD/MM/YYYY' -> (hari, bulan singkat). Bila gagal -> teks apa adanya."""
+    s = (s or "").strip()
+    m = re.match(r"(\d{1,2})\s*[/-]\s*(\d{1,2})(?:\s*[/-]\s*\d{2,4})?", s)
+    if not m:
+        return (s, "")
+    hari = m.group(1)
+    try:
+        bulan = BULAN_PENDEK[int(m.group(2)) - 1]
+    except (IndexError, ValueError):
+        bulan = m.group(2)
+    return (hari, bulan)
+
+
+def build_kegiatan():
+    """Daftar kegiatan/event mendatang (dari data/kegiatan.csv)."""
+    if not KEGIATAN_CSV.exists():
+        return None
+    with KEGIATAN_CSV.open(newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    cards = []
+    for r in rows:
+        nama = (r.get("nama") or "").strip()
+        if not nama:
+            continue
+        tanggal = (r.get("tanggal") or "").strip()
+        waktu = (r.get("waktu") or "").strip()
+        tempat = (r.get("tempat") or "").strip()
+        deskripsi = (r.get("deskripsi") or "").strip()
+        hari, bulan = _parse_tanggal(tanggal)
+        meta = " · ".join(x for x in (waktu, tempat) if x)
+
+        p = ['<div class="card event-card">',
+             f'  <div class="event-date"><b>{html.escape(hari)}</b><span>{html.escape(bulan)}</span></div>',
+             '  <div class="event-body">']
+        if meta:
+            p.append(f'    <span class="meta">{html.escape(meta)}</span>')
+        p.append(f'    <h3>{html.escape(nama)}</h3>')
+        if deskripsi:
+            p.append(f'    <p>{html.escape(deskripsi)}</p>')
+        p.append('  </div>')
+        p.append('</div>')
+        cards.append("\n".join(p))
+    if not cards:
+        return None
+    return '<div class="grid grid-3">\n' + "\n".join(cards) + "\n</div>"
+
+
 def main():
     if not CSV.exists():
         raise SystemExit(f"FAIL: {CSV} belum ada. Jalankan tools/extract-jadwal.py dulu.")
@@ -626,6 +800,87 @@ def main():
                 print("⚠️ data/profil.csv kosong/tidak ada — profil dibiarkan apa adanya.")
         else:
             print(f"⚠️ penanda {PRO_MULAI}/{PRO_SELESAI} tidak ada di index.html.")
+
+    # --- Beranda: pengumuman berjalan (ticker) ---
+    if INDEX.exists():
+        idx = INDEX.read_text(encoding="utf-8")
+        if PEN_MULAI in idx and PEN_SELESAI in idx:
+            pen = build_pengumuman()
+            if pen:
+                q1 = idx.index(PEN_MULAI) + len(PEN_MULAI)
+                q2 = idx.index(PEN_SELESAI)
+                idx = idx[:q1] + "\n" + pen + "\n      " + idx[q2:]
+                INDEX.write_text(idx, encoding="utf-8")
+                print(f"✅ index.html: {pen.count('ticker-item')} pengumuman ditulis.")
+            else:
+                print("⚠️ data/pengumuman.csv kosong/tidak ada — ticker dibiarkan apa adanya.")
+        else:
+            print(f"⚠️ penanda {PEN_MULAI}/{PEN_SELESAI} tidak ada di index.html.")
+
+    # --- Beranda: judul & deskripsi hero ---
+    if INDEX.exists():
+        idx = INDEX.read_text(encoding="utf-8")
+        if HER_MULAI in idx and HER_SELESAI in idx:
+            her = build_hero()
+            if her:
+                j1 = idx.index(HER_MULAI) + len(HER_MULAI)
+                j2 = idx.index(HER_SELESAI)
+                idx = idx[:j1] + "\n" + her + "\n          " + idx[j2:]
+                INDEX.write_text(idx, encoding="utf-8")
+                print("✅ index.html: teks hero ditulis.")
+            else:
+                print("⚠️ data/hero.csv kosong/tidak ada — hero dibiarkan apa adanya.")
+        else:
+            print(f"⚠️ penanda {HER_MULAI}/{HER_SELESAI} tidak ada di index.html.")
+
+    # --- Footer: kolom 'Hubungi Kami' ---
+    if INDEX.exists():
+        idx = INDEX.read_text(encoding="utf-8")
+        if KON_MULAI in idx and KON_SELESAI in idx:
+            kon = build_kontak()
+            if kon:
+                k1 = idx.index(KON_MULAI) + len(KON_MULAI)
+                k2 = idx.index(KON_SELESAI)
+                idx = idx[:k1] + "\n" + kon + "\n          " + idx[k2:]
+                INDEX.write_text(idx, encoding="utf-8")
+                print("✅ index.html: kontak footer ditulis.")
+            else:
+                print("⚠️ data/kontak.csv kosong/tidak ada — kontak dibiarkan apa adanya.")
+        else:
+            print(f"⚠️ penanda {KON_MULAI}/{KON_SELESAI} tidak ada di index.html.")
+
+    # --- Footer: ikon media sosial ---
+    if INDEX.exists():
+        idx = INDEX.read_text(encoding="utf-8")
+        if SOS_MULAI in idx and SOS_SELESAI in idx:
+            sos = build_sosmed()
+            if sos:
+                o1 = idx.index(SOS_MULAI) + len(SOS_MULAI)
+                o2 = idx.index(SOS_SELESAI)
+                idx = idx[:o1] + "\n" + sos + "\n          " + idx[o2:]
+                INDEX.write_text(idx, encoding="utf-8")
+                print("✅ index.html: ikon media sosial ditulis.")
+            else:
+                print("⚠️ data/kontak.csv kosong/tidak ada — sosmed dibiarkan apa adanya.")
+        else:
+            print(f"⚠️ penanda {SOS_MULAI}/{SOS_SELESAI} tidak ada di index.html.")
+
+    # --- Beranda: kegiatan/event mendatang ---
+    if INDEX.exists():
+        idx = INDEX.read_text(encoding="utf-8")
+        if KEG_MULAI in idx and KEG_SELESAI in idx:
+            keg = build_kegiatan()
+            if keg:
+                e1 = idx.index(KEG_MULAI) + len(KEG_MULAI)
+                e2 = idx.index(KEG_SELESAI)
+                idx = idx[:e1] + "\n" + keg + "\n      " + idx[e2:]
+                INDEX.write_text(idx, encoding="utf-8")
+                n_keg = keg.count('class="card event-card"')
+                print(f"✅ index.html: {n_keg} kegiatan ditulis.")
+            else:
+                print("⚠️ data/kegiatan.csv kosong/tidak ada — kegiatan dibiarkan apa adanya.")
+        else:
+            print(f"⚠️ penanda {KEG_MULAI}/{KEG_SELESAI} tidak ada di index.html.")
 
     # --- Galeri ---
     if GALERI_HTML.exists():

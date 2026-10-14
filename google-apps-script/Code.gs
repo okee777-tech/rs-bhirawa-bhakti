@@ -189,3 +189,88 @@ function setupProfil() {
 
   Logger.log('OK: tab "Profil" siap. Ganti foto/nama/pangkat/visi, lalu publish tab ini ke web.');
 }
+
+/** Buat tab "Pengumuman" (teks berjalan di atas halaman) — jalankan sekali. */
+function setupPengumuman() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Pengumuman');
+  if (!sheet) sheet = ss.insertSheet('Pengumuman');
+
+  const headers = ['Teks'];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+
+  if (sheet.getLastRow() < 2) {
+    sheet.getRange(2, 1, 3, 1).setValues([
+      ['Selamat datang di website resmi RS Bhirawa Bhakti Malang 🏥'],
+      ['IGD buka 24 jam — hubungi 0813-5715-8896'],
+      ['Ikuti kegiatan & edukasi kesehatan kami di Instagram @rs_bhirawa_bhakti']
+    ]);
+  }
+
+  Logger.log('OK: tab "Pengumuman" siap. Satu baris = satu pengumuman. Publish tab ini ke web.');
+}
+
+/** Buat tab "Kontak" (alamat/telepon/media sosial di footer) — jalankan sekali. */
+function setupKontak() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Kontak');
+  if (!sheet) sheet = ss.insertSheet('Kontak');
+
+  const headers = ['Alamat', 'Telepon', 'TeleponUGD', 'Email', 'WhatsApp', 'Instagram', 'Facebook', 'YouTube'];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+
+  if (sheet.getLastRow() < 2) {
+    sheet.getRange(2, 1, 1, headers.length).setValues([[
+      'Jl. Panglima Sudirman D-9A, Malang',
+      '0896-7171-3279',
+      '0813-5715-8896',
+      'rsbhirawabhakti@gmail.com',
+      '',
+      'https://www.instagram.com/rs_bhirawa_bhakti/',
+      'https://www.facebook.com/share/18qV29v5Db/?mibextid=wwXIfr',
+      ''
+    ]]);
+  }
+
+  Logger.log('OK: tab "Kontak" siap. Isi kolom kosong bila belum ada. Publish tab ini ke web.');
+}
+
+/** Buat tab "Hero" (judul & deskripsi di beranda) — jalankan sekali. */
+function setupHero() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Hero');
+  if (!sheet) sheet = ss.insertSheet('Hero');
+
+  const headers = ['Judul', 'Deskripsi', 'TeksTombol'];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+
+  if (sheet.getLastRow() < 2) {
+    sheet.getRange(2, 1, 1, headers.length).setValues([[
+      'Pelayanan Kesehatan | Profesional & Terpercaya untuk Anda dan Keluarga',
+      'RS Bhirawa Bhakti melayani rawat jalan, rawat inap, dan layanan gawat darurat 24 jam dengan tenaga medis yang berpengalaman dan fasilitas modern.',
+      'Lihat Dokter & Jadwal'
+    ]]);
+  }
+
+  Logger.log('OK: tab "Hero" siap. Ganti judul/deskripsi/teks tombol, lalu publish tab ini ke web.');
+}
+
+/** Buat tab "Kegiatan" (acara/event mendatang) — jalankan sekali. */
+function setupKegiatan() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Kegiatan');
+  if (!sheet) sheet = ss.insertSheet('Kegiatan');
+
+  const headers = ['Nama', 'Tanggal', 'Waktu', 'Tempat', 'Deskripsi'];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+
+  if (sheet.getLastRow() < 2) {
+    sheet.getRange(2, 1, 3, headers.length).setValues([
+      ['Penyuluhan Kesehatan Diabetes', '17/09/2026', '08.00 – 10.00', 'Aula RS Bhirawa Bhakti', 'Edukasi pencegahan & pengelolaan diabetes melitus untuk pasien dan keluarga.'],
+      ['Donor Darah Rutin', '20/09/2026', '09.00 – 12.00', 'Lobby Utama', 'Ayo donor darah! Bekerja sama dengan PMI Kota Malang.'],
+      ['Senam Sehat Lansia', '24/09/2026', '07.00 – 08.00', 'Halaman Parkir Timur', 'Senam bersama untuk lansia, gratis dan terbuka untuk umum.']
+    ]);
+  }
+
+  Logger.log('OK: tab "Kegiatan" siap. Tanggal pakai format DD/MM/YYYY. Publish tab ini ke web.');
+}

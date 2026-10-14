@@ -39,6 +39,14 @@ SLIDER_OUT = DATA / "slider.csv"
 PROFIL_OUT = DATA / "profil.csv"
 SLIDER_URL_FILE = DATA / "slider-url.txt"
 PROFIL_URL_FILE = DATA / "profil-url.txt"
+PENGUMUMAN_OUT = DATA / "pengumuman.csv"
+KONTAK_OUT = DATA / "kontak.csv"
+HERO_OUT = DATA / "hero.csv"
+KEGIATAN_OUT = DATA / "kegiatan.csv"
+PENGUMUMAN_URL_FILE = DATA / "pengumuman-url.txt"
+KONTAK_URL_FILE = DATA / "kontak-url.txt"
+HERO_URL_FILE = DATA / "hero-url.txt"
+KEGIATAN_URL_FILE = DATA / "kegiatan-url.txt"
 BUILD = ROOT / "tools" / "build-jadwal.py"
 
 HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
@@ -100,6 +108,39 @@ COLS_PROFIL = {
     "nama": ["nama", "namakepala", "namakepalars", "kepalars"],
     "pangkat": ["pangkat", "jabatan", "nrppangkat", "pangkatnrp"],
     "visi": ["visi", "sambutan", "pesan", "katasambutan", "quote"],
+}
+
+# kolom tab "Pengumuman" (teks berjalan) -> kandidat header
+COLS_PENGUMUMAN = {
+    "teks": ["teks", "pengumuman", "pesan", "isi", "announcement", "text"],
+}
+
+# kolom tab "Kontak" (footer) -> kandidat header
+COLS_KONTAK = {
+    "alamat": ["alamat", "address", "lokasi"],
+    "telepon": ["telepon", "telp", "phone", "teleponutama"],
+    "teleponugd": ["teleponugd", "ugd", "igd", "telpugd", "telpigd", "emergency"],
+    "email": ["email", "surel", "mail"],
+    "whatsapp": ["whatsapp", "wa", "nowa", "whatsapplink"],
+    "instagram": ["instagram", "ig", "instagramlink"],
+    "facebook": ["facebook", "fb", "facebooklink"],
+    "youtube": ["youtube", "yt", "youtubelink"],
+}
+
+# kolom tab "Hero" (judul & deskripsi beranda) -> kandidat header
+COLS_HERO = {
+    "judul": ["judul", "title", "judulhero", "heading"],
+    "deskripsi": ["deskripsi", "subjudul", "lead", "keterangan", "description"],
+    "tekstombol": ["tekstombol", "tombol", "cta", "button", "tekstombolutama"],
+}
+
+# kolom tab "Kegiatan" (acara mendatang) -> kandidat header
+COLS_KEGIATAN = {
+    "nama": ["nama", "judul", "acara", "event", "kegiatan"],
+    "tanggal": ["tanggal", "tgl", "date"],
+    "waktu": ["waktu", "jam", "pukul", "time"],
+    "tempat": ["tempat", "lokasi", "ruang", "place"],
+    "deskripsi": ["deskripsi", "keterangan", "deskripsi", "detail", "description"],
 }
 
 
@@ -355,6 +396,142 @@ def fetch_profil(src):
     return True
 
 
+def fetch_pengumuman(src):
+    """Ambil tab Pengumuman -> data/pengumuman.csv. Balikan True kalau berhasil."""
+    text = read_source(src)
+    rows = list(csv.DictReader(text.splitlines()))
+    if not rows:
+        print("⚠️  Pengumuman: CSV kosong / header tidak terbaca (dilewati).")
+        return False
+    cols = find_cols(rows[0].keys(), COLS_PENGUMUMAN)
+
+    def g(row, canon):
+        i = cols.get(canon)
+        return "" if i is None else list(row.values())[i]
+
+    out = []
+    for row in rows:
+        teks = g(row, "teks").strip()
+        if teks:
+            out.append({"teks": teks})
+
+    if not out:
+        return False
+
+    PENGUMUMAN_OUT.parent.mkdir(parents=True, exist_ok=True)
+    fields = ["teks"]
+    with PENGUMUMAN_OUT.open("w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=fields)
+        w.writeheader()
+        w.writerows(out)
+    print(f"✅ {len(out)} pengumuman -> {PENGUMUMAN_OUT.name}")
+    return True
+
+
+def fetch_kontak(src):
+    """Ambil tab Kontak -> data/kontak.csv. Balikan True kalau berhasil."""
+    text = read_source(src)
+    rows = list(csv.DictReader(text.splitlines()))
+    if not rows:
+        print("⚠️  Kontak: CSV kosong / header tidak terbaca (dilewati).")
+        return False
+    cols = find_cols(rows[0].keys(), COLS_KONTAK)
+
+    def g(row, canon):
+        i = cols.get(canon)
+        return "" if i is None else list(row.values())[i]
+
+    row = rows[0]
+    out = [{
+        "alamat": g(row, "alamat").strip(),
+        "telepon": g(row, "telepon").strip(),
+        "teleponugd": g(row, "teleponugd").strip(),
+        "email": g(row, "email").strip(),
+        "whatsapp": g(row, "whatsapp").strip(),
+        "instagram": g(row, "instagram").strip(),
+        "facebook": g(row, "facebook").strip(),
+        "youtube": g(row, "youtube").strip(),
+    }]
+
+    KONTAK_OUT.parent.mkdir(parents=True, exist_ok=True)
+    fields = ["alamat", "telepon", "teleponugd", "email", "whatsapp", "instagram", "facebook", "youtube"]
+    with KONTAK_OUT.open("w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=fields)
+        w.writeheader()
+        w.writerows(out)
+    print(f"✅ kontak -> {KONTAK_OUT.name}")
+    return True
+
+
+def fetch_hero(src):
+    """Ambil tab Hero -> data/hero.csv. Balikan True kalau berhasil."""
+    text = read_source(src)
+    rows = list(csv.DictReader(text.splitlines()))
+    if not rows:
+        print("⚠️  Hero: CSV kosong / header tidak terbaca (dilewati).")
+        return False
+    cols = find_cols(rows[0].keys(), COLS_HERO)
+
+    def g(row, canon):
+        i = cols.get(canon)
+        return "" if i is None else list(row.values())[i]
+
+    row = rows[0]
+    out = [{
+        "judul": g(row, "judul").strip(),
+        "deskripsi": g(row, "deskripsi").strip(),
+        "tekstombol": g(row, "tekstombol").strip(),
+    }]
+
+    HERO_OUT.parent.mkdir(parents=True, exist_ok=True)
+    fields = ["judul", "deskripsi", "tekstombol"]
+    with HERO_OUT.open("w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=fields)
+        w.writeheader()
+        w.writerows(out)
+    print(f"✅ hero -> {HERO_OUT.name}")
+    return True
+
+
+def fetch_kegiatan(src):
+    """Ambil tab Kegiatan -> data/kegiatan.csv. Balikan True kalau berhasil."""
+    text = read_source(src)
+    rows = list(csv.DictReader(text.splitlines()))
+    if not rows:
+        print("⚠️  Kegiatan: CSV kosong / header tidak terbaca (dilewati).")
+        return False
+    cols = find_cols(rows[0].keys(), COLS_KEGIATAN)
+    if "nama" not in cols:
+        print(f"⚠️  Kegiatan: kolom 'Nama' tidak ditemukan. Header: {list(rows[0].keys())}")
+        return False
+
+    def g(row, canon):
+        i = cols.get(canon)
+        return "" if i is None else list(row.values())[i]
+
+    out = []
+    for row in rows:
+        nama = g(row, "nama").strip()
+        if not nama:
+            continue
+        out.append({
+            "nama": nama,
+            "tanggal": g(row, "tanggal").strip(),
+            "waktu": g(row, "waktu").strip(),
+            "tempat": g(row, "tempat").strip(),
+            "deskripsi": g(row, "deskripsi").strip(),
+        })
+
+    KEGIATAN_OUT.parent.mkdir(parents=True, exist_ok=True)
+    fields = ["nama", "tanggal", "waktu", "tempat", "deskripsi"]
+    with KEGIATAN_OUT.open("w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=fields)
+        w.writeheader()
+        w.writerows(out)
+    print(f"✅ {len(out)} kegiatan -> {KEGIATAN_OUT.name}")
+    return True
+
+
 def main():
     if len(sys.argv) > 1:
         src = sys.argv[1].strip()
@@ -497,7 +674,63 @@ def main():
         PROFIL_URL_FILE.write_text(profil_src + "\n", encoding="utf-8")
         fetch_profil(profil_src)
 
-    # bangun ulang dokter.html + kartu layanan + galeri + berita + slider + profil
+    # --- tab Pengumuman (opsional) ---
+    pengumuman_src = None
+    if len(sys.argv) > 7:
+        pengumuman_src = sys.argv[7].strip()
+    elif os.environ.get("PENGUMUMAN_CSV_URL"):
+        pengumuman_src = os.environ["PENGUMUMAN_CSV_URL"].strip()
+    elif PENGUMUMAN_URL_FILE.exists():
+        pengumuman_src = PENGUMUMAN_URL_FILE.read_text(encoding="utf-8").strip().splitlines()[0]
+
+    if pengumuman_src and pengumuman_src.startswith("http"):
+        DATA.mkdir(parents=True, exist_ok=True)
+        PENGUMUMAN_URL_FILE.write_text(pengumuman_src + "\n", encoding="utf-8")
+        fetch_pengumuman(pengumuman_src)
+
+    # --- tab Kontak (opsional) ---
+    kontak_src = None
+    if len(sys.argv) > 8:
+        kontak_src = sys.argv[8].strip()
+    elif os.environ.get("KONTAK_CSV_URL"):
+        kontak_src = os.environ["KONTAK_CSV_URL"].strip()
+    elif KONTAK_URL_FILE.exists():
+        kontak_src = KONTAK_URL_FILE.read_text(encoding="utf-8").strip().splitlines()[0]
+
+    if kontak_src and kontak_src.startswith("http"):
+        DATA.mkdir(parents=True, exist_ok=True)
+        KONTAK_URL_FILE.write_text(kontak_src + "\n", encoding="utf-8")
+        fetch_kontak(kontak_src)
+
+    # --- tab Hero (opsional) ---
+    hero_src = None
+    if len(sys.argv) > 9:
+        hero_src = sys.argv[9].strip()
+    elif os.environ.get("HERO_CSV_URL"):
+        hero_src = os.environ["HERO_CSV_URL"].strip()
+    elif HERO_URL_FILE.exists():
+        hero_src = HERO_URL_FILE.read_text(encoding="utf-8").strip().splitlines()[0]
+
+    if hero_src and hero_src.startswith("http"):
+        DATA.mkdir(parents=True, exist_ok=True)
+        HERO_URL_FILE.write_text(hero_src + "\n", encoding="utf-8")
+        fetch_hero(hero_src)
+
+    # --- tab Kegiatan (opsional) ---
+    kegiatan_src = None
+    if len(sys.argv) > 10:
+        kegiatan_src = sys.argv[10].strip()
+    elif os.environ.get("KEGIATAN_CSV_URL"):
+        kegiatan_src = os.environ["KEGIATAN_CSV_URL"].strip()
+    elif KEGIATAN_URL_FILE.exists():
+        kegiatan_src = KEGIATAN_URL_FILE.read_text(encoding="utf-8").strip().splitlines()[0]
+
+    if kegiatan_src and kegiatan_src.startswith("http"):
+        DATA.mkdir(parents=True, exist_ok=True)
+        KEGIATAN_URL_FILE.write_text(kegiatan_src + "\n", encoding="utf-8")
+        fetch_kegiatan(kegiatan_src)
+
+    # bangun ulang semua bagian dari sheet
     subprocess.run([sys.executable, str(BUILD)], check=True)
 
 
