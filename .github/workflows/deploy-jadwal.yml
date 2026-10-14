@@ -29,8 +29,8 @@ jobs:
       LAYANAN_CSV_URL: ${{ vars.LAYANAN_CSV_URL != '' && vars.LAYANAN_CSV_URL || secrets.LAYANAN_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFcDklj6y4iynfYzuC8DzU1zN1jmrlgbr9qhGhAlk3XmmAZvC4ZcmUAFqPf7BL_Fbp1bEd8N6q_G7B/pub?output=csv&gid=1621418019' }}
       GALERI_CSV_URL: ${{ vars.GALERI_CSV_URL != '' && vars.GALERI_CSV_URL || secrets.GALERI_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFcDklj6y4iynfYzuC8DzU1zN1jmrlgbr9qhGhAlk3XmmAZvC4ZcmUAFqPf7BL_Fbp1bEd8N6q_G7B/pub?output=csv&gid=710468756' }}
       BERITA_CSV_URL: ${{ vars.BERITA_CSV_URL != '' && vars.BERITA_CSV_URL || secrets.BERITA_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFcDklj6y4iynfYzuC8DzU1zN1jmrlgbr9qhGhAlk3XmmAZvC4ZcmUAFqPf7BL_Fbp1bEd8N6q_G7B/pub?output=csv&gid=1271807554' }}
-      SLIDER_CSV_URL: ${{ vars.SLIDER_CSV_URL != '' && vars.SLIDER_CSV_URL || secrets.SLIDER_CSV_URL || '' }}
-      PROFIL_CSV_URL: ${{ vars.PROFIL_CSV_URL != '' && vars.PROFIL_CSV_URL || secrets.PROFIL_CSV_URL || '' }}
+      SLIDER_CSV_URL: ${{ vars.SLIDER_CSV_URL != '' && vars.SLIDER_CSV_URL || secrets.SLIDER_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFcDklj6y4iynfYzuC8DzU1zN1jmrlgbr9qhGhAlk3XmmAZvC4ZcmUAFqPf7BL_Fbp1bEd8N6q_G7B/pub?output=csv&gid=22551658' }}
+      PROFIL_CSV_URL: ${{ vars.PROFIL_CSV_URL != '' && vars.PROFIL_CSV_URL || secrets.PROFIL_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFcDklj6y4iynfYzuC8DzU1zN1jmrlgbr9qhGhAlk3XmmAZvC4ZcmUAFqPf7BL_Fbp1bEd8N6q_G7B/pub?output=csv&gid=450449220' }}
 
     steps:
       - name: Ambil repo
